@@ -28,6 +28,11 @@ LaTeX math (drawn as MathML by the vendored [Temml](https://temml.org/)) and
 Themes are palettes with a light and a dark mode — Hippo, Catppuccin, Grey,
 High contrast, or your own, made in the built-in theme editor.
 
+Paste a screenshot or drop a picture on the editor and it goes into the
+document, which stays one self-contained file. **Export** prints the
+document or saves it as a PDF, an HTML page, RTF for Pages and Word, or
+plain text, or copies it as rich text to paste into an email.
+
 The core is a plugin host. CommonMark itself is a plugin, written against the
 same API anyone else would use, and so is the syntax colouring of fenced code
 in some twenty languages.
@@ -44,7 +49,8 @@ in some twenty languages.
   autocomplete in [`docs/features/02-autocomplete.md`](docs/features/02-autocomplete.md),
   themes in [`docs/features/03-themes.md`](docs/features/03-themes.md),
   navigation in [`docs/features/04-navigation.md`](docs/features/04-navigation.md),
-  extensions in [`docs/features/05-extensions.md`](docs/features/05-extensions.md)
+  extensions in [`docs/features/05-extensions.md`](docs/features/05-extensions.md),
+  images and export in [`docs/features/06-images-export.md`](docs/features/06-images-export.md)
 
 ## Develop
 

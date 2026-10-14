@@ -7,7 +7,7 @@ highlighting, the code plugin, the plugin list) is in
 `01-highlighting.md`, phase 3 (autocomplete) in `02-autocomplete.md`,
 phase 4 (themes) in `03-themes.md`, phase 5 (synced scroll, outline,
 minimap) in `04-navigation.md`, phase 6 (extensions) in
-`05-extensions.md`.*
+`05-extensions.md`, phase 7 (images, export) in `06-images-export.md`.*
 
 ## Layout
 
@@ -21,6 +21,8 @@ src/js/highlight/         AST → edit-pane colours, code tokens (pure)
 src/js/complete/          autocomplete: context, ranking, snippets (pure)
 src/js/themes/            palettes: tokens, Hippo, custom themes (pure)
 src/js/nav/               outline, scroll mapping (pure)
+src/js/export/            rendered HTML → plain text, RTF, an HTML page (pure)
+src/js/images/            where a pasted image goes in the markdown (pure)
 src/js/plugins/gfm        tables, task lists, strikethrough, autolinks, tag filter
 src/js/plugins/footnotes, math, mermaid
 src/vendor/               Temml and Mermaid, loaded on demand (see NOTICE)
@@ -49,8 +51,9 @@ These are copied from JsonHippo and Rest Hippo:
   `new EditorView(el, { onChange })`.
 - localStorage keys use the `markhippo.` prefix (`markhippo.theme`,
   `markhippo.document`, …).
-- The page's CSP allows no inline script or style. Raw HTML in a document is
-  rendered, but nothing in it can run. The preview also builds its HTML in an
+- The page's CSP allows no inline script. Inline styles are allowed only
+  because Mermaid's diagrams need them; the preview strips a document's own
+  (phase 6). Raw HTML in a document is rendered, but nothing in it can run. The preview also builds its HTML in an
   inert `<template>` first and removes what the CSP cannot stop — `meta`
   (a refresh would navigate away), `base`, `link`, `form`, scripts, frames —
   and clears unsafe URLs from raw HTML's attributes (`preview-view.js`).

@@ -61,6 +61,7 @@ function examples(text, source, keep) {
     const html = [];
     let into = md;
     for (i++; lines[i] !== FENCE; i++) {
+      if (i >= lines.length) throw new Error(`${source}: example "${tag}" (in ${section}) is never closed`);
       if (lines[i] === "." && into === md) into = html;
       else into.push(lines[i]);
     }

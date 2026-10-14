@@ -126,6 +126,35 @@ test("footnotes: references only where defined, numbered by first use", () => {
   assert.ok(html.indexOf('<li id="fn-b">') < html.indexOf('<li id="fn-a">'));
 });
 
+// ── Fixes from reviewing phase 6 ──
+
+test("bare links are found beside backslash escapes and entities, at their place in the source", () => {
+  for (const src of ["See www.example.com \\& more", "Tom&#39;s site: https://x.com", "\\*a* https://y.org/z \\*b*"]) {
+    const ast = mh.parse(src);
+    const links = findAll(ast, "link");
+    assert.equal(links.length, 1, src);
+    assert.equal(covered(src, links[0]), links[0].destination.replace(/^http:\/\//, ""), src);
+  }
+  assert.equal(mh.render(mh.parse("Tom&#39;s site: https://x.com")), '<p>Tom\'s site: <a href="https://x.com">https://x.com</a></p>\n');
+});
+
+test("math and footnote references in an image's alt text are only text", () => {
+  assert.equal(mh.render(mh.parse("![$x$](a.png)")), '<p><img src="a.png" alt="x" /></p>\n');
+  assert.equal(mh.render(mh.parse("![see[^1]](a.png)\n\n[^1]: n")), '<p><img src="a.png" alt="see[^1]" /></p>\n');
+});
+
+test("footnotes are numbered in the order they render, notes citing notes included", () => {
+  // A definition that comes first, citing a note, numbers nothing.
+  const html = mh.render(mh.parse("[^a]: A, see [^b].\n\n[^b]: B.\n\nText [^a] then [^b]."));
+  assert.match(html, /href="#fn-a" id="fnref-a" data-footnote-ref>1</);
+  assert.match(html, /href="#fn-b" id="fnref-b" data-footnote-ref>2</);
+  assert.ok(html.indexOf('<li id="fn-a">') < html.indexOf('<li id="fn-b">'));
+  // A note cited again from a later note has a way back to each reference.
+  const cycle = mh.render(mh.parse("Text [^a].\n\n[^a]: A cites [^b].\n\n[^b]: B cites [^a]."));
+  assert.match(cycle, /id="fnref-a-2"/);
+  assert.match(cycle, /href="#fnref-a-2" class="footnote-backref"/);
+});
+
 test("footnote definitions are definitions to incremental reparse", () => {
   const block = (i) => `## Section ${i}\n\nText with a note[^n${i % 5}].\n`;
   let text = "";

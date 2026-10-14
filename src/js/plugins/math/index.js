@@ -123,6 +123,11 @@ const mathBlock = {
 // ── HTML ─────────────────────────────────────────────────────────────────────
 
 function renderInline(node, r) {
+  // In an image's alt text, where no tags may go: the TeX.
+  if (r.disableTags > 0) {
+    r.out(node.literal);
+    return;
+  }
   r.lit(`<span class="math ${node.display ? "math-display" : "math-inline"}">`);
   r.out(node.literal);
   r.lit("</span>");
@@ -143,18 +148,38 @@ function renderFence(node, r) {
 
 // ── The enhancer: TeX → MathML ───────────────────────────────────────────────
 
+// What the MathML needs besides the browser: Temml's stylesheet (and its
+// one font). Exports carry it too.
+const STYLESHEET = new URL("../../../vendor/temml/Temml-Local.css", import.meta.url).href;
+
 let temml = null;
+// The first load, shared by every render that arrives while it runs (so the
+// stylesheet is added once).
+let loading = null;
 const cache = new Map();
+
+function load(doc) {
+  if (!loading) {
+    const css = doc.createElement("link");
+    css.rel = "stylesheet";
+    css.href = STYLESHEET;
+    doc.head.append(css);
+    loading = import("../../../vendor/temml/temml.mjs").then(
+      (m) => (temml = m.default),
+      (err) => {
+        // Try again next time.
+        css.remove();
+        loading = null;
+        throw err;
+      },
+    );
+  }
+  return loading;
+}
 
 async function enhance(elements) {
   const doc = elements[0].ownerDocument;
-  if (!temml) {
-    const css = doc.createElement("link");
-    css.rel = "stylesheet";
-    css.href = new URL("../../../vendor/temml/Temml-Local.css", import.meta.url).href;
-    doc.head.append(css);
-    temml = (await import("../../../vendor/temml/temml.mjs")).default;
-  }
+  if (!temml) await load(doc);
   for (const el of elements) {
     const tex = el.textContent;
     const display = el.classList.contains("math-display");
@@ -204,7 +229,7 @@ export default {
     api.renderer("math_inline", renderInline);
     api.renderer("math_block", renderBlock);
     api.fenceRenderer("math", renderFence);
-    api.enhancer({ selector: ".math", run: enhance });
+    api.enhancer({ selector: ".math", run: enhance, stylesheet: STYLESHEET });
     api.highlighter("math_inline", highlightInline);
     api.highlighter("math_block", highlightBlock);
     api.completions({
