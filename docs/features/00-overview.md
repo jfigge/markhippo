@@ -6,7 +6,8 @@ Milestone 1 and the rules later milestones build on. Phase 2 (edit-pane
 highlighting, the code plugin, the plugin list) is in
 `01-highlighting.md`, phase 3 (autocomplete) in `02-autocomplete.md`,
 phase 4 (themes) in `03-themes.md`, phase 5 (synced scroll, outline,
-minimap) in `04-navigation.md`.*
+minimap) in `04-navigation.md`, phase 6 (extensions) in
+`05-extensions.md`.*
 
 ## Layout
 
@@ -20,6 +21,9 @@ src/js/highlight/         AST → edit-pane colours, code tokens (pure)
 src/js/complete/          autocomplete: context, ranking, snippets (pure)
 src/js/themes/            palettes: tokens, Hippo, custom themes (pure)
 src/js/nav/               outline, scroll mapping (pure)
+src/js/plugins/gfm        tables, task lists, strikethrough, autolinks, tag filter
+src/js/plugins/footnotes, math, mermaid
+src/vendor/               Temml and Mermaid, loaded on demand (see NOTICE)
 src/js/plugins/themes     more palettes: Catppuccin, Grey, High contrast
 src/js/plugins/commonmark CommonMark: parsing, HTML, colouring (pure)
 src/js/plugins/code       syntax colouring for fenced code     (pure)
@@ -134,6 +138,8 @@ export default {
     api.highlighter(type, (node, h) => { … });
     api.completions({ context, provide(ctx) });
     api.theme({ id, name, light: { "--bg": "#…", … }, dark: { … } });
+    api.inlineFinisher((state, block) => { … });
+    api.enhancer({ selector, run(elements, context) { … } });
   },
 };
 ```
@@ -159,6 +165,7 @@ export default {
   `02-autocomplete.md`.
 - **Themes** are named palettes with a light and a dark mode; see
   `03-themes.md`.
+- **Inline finishers** and **enhancers** are described in `05-extensions.md`.
 
 The core registers only `document`, `paragraph` and text. With no plugins,
 everything is plain paragraphs. CommonMark (`plugins/commonmark/`) is
@@ -167,6 +174,5 @@ checks that, along with a toy third-party plugin.
 
 ## Not yet (later milestones)
 
-- The extension plugins: tables, footnotes, task lists, math and Mermaid.
 - Images and export.
 - The Electron shell.

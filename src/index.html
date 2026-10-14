@@ -3,12 +3,14 @@
 <head>
   <meta charset="utf-8">
   <!-- A markdown document is untrusted input that ends up in the DOM — raw
-       HTML is part of markdown — so no inline script and no inline style may
-       run: every script is a file from this origin, and the preview's
+       HTML is part of markdown — so no inline script may run: every script
+       is a file from this origin, and the preview's
        embedded HTML cannot execute anything. Images may come from anywhere,
-       as a document's images do. Styles set from JS go through element.style
-       (CSSOM), which style-src allows. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+       as a document's images do. Inline styles are allowed because Mermaid's
+       diagrams are styled that way; the preview strips style attributes and
+       <style> elements from a document's raw HTML (js/preview-view.js), so
+       only MarkHippo's own code uses them. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="A markdown viewer and editor with live preview, built on its own CommonMark parser. Free, in the browser, nothing uploaded.">
   <meta name="color-scheme" content="light dark">
@@ -92,13 +94,16 @@
   <img class="mh-about-logo" src="img/markhippo.svg" width="96" height="96" alt="">
   <h2 class="mh-about-name" id="mh-about-name">MarkHippo</h2>
   <p class="mh-about-tagline">The discoverable, extensible markdown editor</p>
-  <p class="mh-about-desc">CommonMark, rendered by MarkHippo's own parser. Nothing you write leaves this machine.</p>
+  <p class="mh-about-desc">CommonMark and GitHub's extensions, with math and diagrams, rendered by MarkHippo's own parser. Nothing you write leaves this machine.</p>
   <p class="mh-about-links">
     <a href="https://hippoherd.com/" target="_blank" rel="noopener noreferrer">Hippo Herd</a>
     <a href="docs/" target="_blank" rel="noopener noreferrer">User guide</a>
     <a href="https://github.com/jfigge/markhippo" target="_blank" rel="noopener noreferrer">Source on GitHub</a>
   </p>
-  <p class="mh-about-credit">Copyright © 2026 Jason Figge · Apache-2.0</p>
+  <p class="mh-about-credit">Designed by Jason, Coded by Claude<br>Copyright © 2026 Jason Figge · GPL-3.0</p>
+  <p class="mh-about-support">
+    <a href="https://github.com/sponsors/jfigge" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">♥</span> Support MarkHippo…</a>
+  </p>
   <form method="dialog">
     <button type="submit" class="mh-btn" autofocus>Close</button>
   </form>
@@ -202,7 +207,7 @@
   <span class="mh-status-doc" id="mh-status-doc"></span>
   <span class="mh-status-cursor" id="mh-status-cursor">Ln 1, Col 1</span>
   <div class="mh-view" role="toolbar" aria-label="View">
-    <button type="button" class="mh-toggle" id="mh-view-outline" aria-pressed="false" title="The headings, to jump between">Outline</button>
+    <button type="button" class="mh-toggle mh-toggle--outline" id="mh-view-outline" aria-pressed="false" title="The headings, to jump between">Outline</button>
     <button type="button" class="mh-toggle" id="mh-view-minimap" aria-pressed="false" title="The whole document in miniature, beside the editor">Minimap</button>
     <button type="button" class="mh-toggle" id="mh-view-sync" aria-pressed="true" title="Keep the editor and the preview scrolled to the same place">Sync scroll</button>
   </div>

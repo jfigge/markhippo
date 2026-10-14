@@ -1,17 +1,20 @@
 /*
  * Copyright 2026 Jason Figge
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of MarkHippo.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * MarkHippo is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * MarkHippo is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with MarkHippo. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /*
@@ -26,6 +29,15 @@ import { createMarkHippo } from "./core/host.js";
 import commonmark from "./plugins/commonmark/index.js";
 import code from "./plugins/code/index.js";
 import themesPlugin from "./plugins/themes/index.js";
+import tables from "./plugins/gfm/tables.js";
+import taskLists from "./plugins/gfm/task-lists.js";
+import strikethrough from "./plugins/gfm/strikethrough.js";
+import autolinks from "./plugins/gfm/autolinks.js";
+import tagFilter from "./plugins/gfm/tag-filter.js";
+import footnotes from "./plugins/footnotes/index.js";
+import math from "./plugins/math/index.js";
+import mermaid from "./plugins/mermaid/index.js";
+import { enhance } from "./enhance.js";
 import { ThemeDialog } from "./theme-dialog.js";
 import { ThemeManager } from "./theme-manager.js";
 import { Minimap } from "./minimap.js";
@@ -69,7 +81,7 @@ const storage = {
 
 // The bundled plugin set, in installation order. The extensions (tables,
 // footnotes, task lists, math, Mermaid) arrive as further plugins here.
-const BUNDLED = [commonmark, code, themesPlugin];
+const BUNDLED = [commonmark, code, tables, taskLists, strikethrough, autolinks, tagFilter, footnotes, math, mermaid, themesPlugin];
 
 // Plugins the user switched off, by id (required ones cannot be).
 function loadDisabled() {
@@ -84,7 +96,14 @@ let disabled = loadDisabled();
 const createHost = () => createMarkHippo({ plugins: BUNDLED.filter((p) => p.required || !disabled.has(p.id)) });
 let mh = createHost();
 
-const RENDER_OPTIONS = { html: true, safe: true, sourceLines: true, headingIds: true };
+// The preview's source-line marks, which synced scroll steers by, go in an
+// attribute named afresh each session, so raw HTML in a document cannot
+// plant marks of its own.
+const LINE_ATTRIBUTE = `data-line-${Math.random().toString(36).slice(2, 10)}`;
+// Task checkboxes are live, carrying their source offset — in an attribute
+// named afresh each session too.
+const TASK_ATTRIBUTE = `data-task-${Math.random().toString(36).slice(2, 10)}`;
+const RENDER_OPTIONS = { html: true, safe: true, sourceLines: LINE_ATTRIBUTE, headingIds: true, taskAttribute: TASK_ATTRIBUTE };
 
 // The last parse, and the text it was of.
 let ast = null;
@@ -92,7 +111,22 @@ let parsedText = null;
 let filename = storage.get(STORE.filename) || "untitled.md";
 
 const status = new StatusBar({ parse: $("mh-status-parse"), doc: $("mh-status-doc"), cursor: $("mh-status-cursor") });
-const preview = new PreviewView($("mh-preview"), document.querySelector(".mh-pane--preview"));
+const preview = new PreviewView($("mh-preview"), document.querySelector(".mh-pane--preview"), {
+  taskAttribute: TASK_ATTRIBUTE,
+  onTask: toggleTask,
+  // Math and diagrams, drawn in the page's mode.
+  onUpdate: () => enhance($("mh-preview"), mh.registry, { dark: themes.resolvedMode() === "dark" }),
+});
+
+// A task ticked in the preview is ticked in the source: [ ] ↔ [x].
+function toggleTask(offset) {
+  const marker = editor.value.slice(offset, offset + 3);
+  if (!/^\[[ xX]\]$/.test(marker)) return;
+  editor.editAt(offset + 1, offset + 2, marker[1] === " " ? "x" : " ");
+  render();
+  // The preview was redrawn: keep the focus on the same checkbox.
+  $("mh-preview").querySelector(`input[${TASK_ATTRIBUTE}="${offset}"]`)?.focus({ preventScroll: true });
+}
 const editor = new EditorView($("mh-source"), {
   highlight: $("mh-highlight"),
   scroller: $("mh-source-scroll"),
@@ -152,16 +186,14 @@ const outlineView = new OutlineView({
   panel: $("mh-outline"),
   list: $("mh-outline-list"),
   empty: $("mh-outline-empty"),
-  onJump: (heading) => {
-    editor.goToLine(heading.line);
-    sync.previewToLine(heading.line);
-  },
+  onJump: (heading) => sync.jumpTo(heading.line),
 });
 const minimap = new Minimap($("mh-minimap"), { editor });
 const sync = new ScrollSync({
   editor,
   preview: document.querySelector(".mh-pane--preview"),
   content: $("mh-preview"),
+  lineAttribute: LINE_ATTRIBUTE,
   onScroll: () => {
     minimap.schedule();
     showPlace();
@@ -358,9 +390,14 @@ function showMode() {
 themeButton.addEventListener("click", () => {
   themes.setMode(MODES[(MODES.findIndex((m) => m.id === themes.mode) + 1) % MODES.length].id);
 });
+let wasDark = null;
 themes.onChange(() => {
   showMode();
   minimap.invalidate();
+  // Diagrams are drawn for light or dark: redraw them when that changes.
+  const dark = themes.resolvedMode() === "dark";
+  if (wasDark !== null && dark !== wasDark && ast) preview.update(mh.render(ast, RENDER_OPTIONS));
+  wasDark = dark;
 });
 $("mh-themes-open").addEventListener("click", () => themeDialog.open());
 

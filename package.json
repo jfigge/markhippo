@@ -4,7 +4,7 @@
   "private": true,
   "description": "A markdown viewer and editor built on its own parser.",
   "type": "module",
-  "license": "Apache-2.0",
+  "license": "GPL-3.0-or-later",
   "author": "Jason Figge",
   "homepage": "https://hippoherd.com/markhippo/",
   "repository": {

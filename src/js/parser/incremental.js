@@ -1,17 +1,20 @@
 /*
  * Copyright 2026 Jason Figge
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of MarkHippo.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * MarkHippo is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * MarkHippo is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with MarkHippo. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /*
@@ -106,8 +109,9 @@ export function reparse(registry, prev, text, options = {}) {
   const fresh = (region.children ?? []).map((n) => shift(n, startLine - 1, regionStart));
 
   // Definitions are global: if the region's changed, everything may have.
-  const oldDefs = definitionsIn(blocks.slice(i, j + 1));
-  const newDefs = definitionsIn(fresh);
+  const isDefinition = (n) => n.type === "link_reference_definition" || Boolean(registry.blocks.get(n.type)?.definition);
+  const oldDefs = definitionsIn(blocks.slice(i, j + 1), isDefinition);
+  const newDefs = definitionsIn(fresh, isDefinition);
   if (!sameDefinitions(oldDefs, newDefs)) return full("link definitions changed");
 
   // The untouched blocks at the edges must have come out the same.
@@ -148,10 +152,12 @@ function shift(node, lines, offset) {
   return out;
 }
 
-function definitionsIn(nodes, out = []) {
+// Nodes that define something for the whole document: link reference
+// definitions, and the types a block rule flags `definition` (footnotes).
+function definitionsIn(nodes, isDefinition, out = []) {
   for (const n of nodes) {
-    if (n.type === "link_reference_definition") out.push(n);
-    else if (n.children) definitionsIn(n.children, out);
+    if (isDefinition(n)) out.push(n);
+    if (n.children) definitionsIn(n.children, isDefinition, out);
   }
   return out;
 }

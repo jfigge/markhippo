@@ -30,7 +30,12 @@ HTML      := src/index.html src/docs/index.html
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install serve test lint validate check dist clean spec-report entities site preview-site
+.PHONY: help install serve test lint validate check dist clean spec-report entities gfm-fixtures vendor site preview-site
+
+# Third-party code the app ships, in src/vendor/ (see NOTICE), loaded only
+# when a document needs it. `make vendor` refreshes it from npm.
+TEMML_VERSION   := 0.14.0
+MERMAID_VERSION := 12.2.0
 
 help:
 	@echo ""
@@ -50,6 +55,8 @@ help:
 	@echo "  Extras:"
 	@echo "    spec-report   CommonMark conformance, pass rate per spec section"
 	@echo "    entities      Regenerate src/js/parser/entities.js from WHATWG's list"
+	@echo "    gfm-fixtures  Regenerate the GFM extension examples from cmark-gfm"
+	@echo "    vendor        Refresh src/vendor/ (Temml $(TEMML_VERSION), Mermaid $(MERMAID_VERSION)) from npm"
 	@echo "    site          Publish: check, then copy the app into a hippoherd"
 	@echo "                  checkout's website/markhippo/  (HIPPOHERD=…, default ../hippoherd)"
 	@echo "    preview-site  Serve a hippoherd checkout with this app in it, at"
@@ -95,6 +102,24 @@ spec-report:
 # named character reference (it has not since 2013).
 entities:
 	node scripts/make-entities.mjs
+
+gfm-fixtures:
+	node scripts/make-gfm-fixtures.mjs
+
+# Only what the browser loads: Temml's ES module and its stylesheet and font;
+# Mermaid's ES build and its code-split chunks (no source maps, no types).
+vendor:
+	rm -rf "$(BUILD_DIR)/vendor" && mkdir -p "$(BUILD_DIR)/vendor"
+	cd "$(BUILD_DIR)/vendor" && npm pack --silent temml@$(TEMML_VERSION) mermaid@$(MERMAID_VERSION) >/dev/null
+	cd "$(BUILD_DIR)/vendor" && for f in *.tgz; do mkdir -p "$${f%.tgz}" && tar -xzf "$$f" -C "$${f%.tgz}"; done
+	rm -rf "$(SRC_DIR)/vendor/temml" "$(SRC_DIR)/vendor/mermaid"
+	mkdir -p "$(SRC_DIR)/vendor/temml" "$(SRC_DIR)/vendor/mermaid/chunks/mermaid.esm.min"
+	T="$(BUILD_DIR)/vendor/temml-$(TEMML_VERSION)/package"; \
+	  cp "$$T/dist/temml.mjs" "$$T/dist/Temml-Local.css" "$$T/dist/Temml.woff2" "$$T/LICENSE" "$(SRC_DIR)/vendor/temml/"
+	M="$(BUILD_DIR)/vendor/mermaid-$(MERMAID_VERSION)/package"; \
+	  cp "$$M/dist/mermaid.esm.min.mjs" "$$M/LICENSE" "$(SRC_DIR)/vendor/mermaid/" && \
+	  cp "$$M/dist/chunks/mermaid.esm.min/"*.mjs "$(SRC_DIR)/vendor/mermaid/chunks/mermaid.esm.min/"
+	@echo "src/vendor/ refreshed."
 
 # Publish the app to hippoherd.com/markhippo/. hippoherd's generator never
 # writes website/markhippo/index.html — MarkHippo's entry in its

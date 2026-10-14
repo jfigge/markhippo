@@ -1,17 +1,20 @@
 /*
  * Copyright 2026 Jason Figge
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of MarkHippo.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * MarkHippo is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * MarkHippo is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with MarkHippo. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /*
@@ -23,9 +26,11 @@
  */
 
 // The text a reader sees in `node`: text and code literally, breaks as
-// spaces, everything else by its children.
+// spaces, everything else by its children — but not an image's alt text,
+// which is not seen (GitHub leaves it out of heading ids too).
 export function plainText(node) {
   if (node.type === "text" || node.type === "code") return node.literal ?? "";
+  if (node.type === "image") return "";
   if (node.type === "softbreak" || node.type === "linebreak") return " ";
   let out = "";
   for (const child of node.children ?? []) out += plainText(child);
@@ -33,8 +38,9 @@ export function plainText(node) {
 }
 
 export function slugify(text) {
+  // Not trimmed: GitHub doesn't (a heading starting with an image starts
+  // its id with "-"), and the parser has trimmed the heading already.
   return text
-    .trim()
     .toLowerCase()
     .replace(/[^\p{L}\p{M}\p{N}\p{Pc}\- ]/gu, "")
     .replace(/ /g, "-");

@@ -540,8 +540,10 @@ body {
   }
 }
 
+/* Too narrow for a side panel: no outline, and no switch for one. */
 @media (max-width: 700px) {
-  .mh-outline {
+  .mh-outline,
+  .mh-toggle--outline {
     display: none;
   }
 }
@@ -594,6 +596,15 @@ body {
 
 .mh-about-credit {
   font-size: 12px;
+}
+
+.mh-about-support a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.mh-about-support a:hover {
+  text-decoration: underline;
 }
 
 /* ── Plugins ────────────────────────────────────────────────────────────── */

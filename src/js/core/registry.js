@@ -1,17 +1,20 @@
 /*
  * Copyright 2026 Jason Figge
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of MarkHippo.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * MarkHippo is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * MarkHippo is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with MarkHippo. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /*
@@ -39,6 +42,9 @@
  *                               type again replaces the earlier rule.
  *   inlineRule(rule)            an inline syntax, by trigger character (see
  *                               parser/inlines.js)
+ *   inlineFinisher(fn)          fn(state, block), run on each leaf once its
+ *                               inlines are parsed: for syntax found in plain
+ *                               text afterwards (GFM's bare-URL autolinks)
  *   delimiter(spec)             an emphasis-like delimiter run
  *   renderer(type, fn)          how a node type renders to HTML
  *                               (see render/html.js)
@@ -52,6 +58,11 @@
  *                               (see highlight/highlight.js)
  *   completions(provider)       autocomplete suggestions: { context, provide }
  *                               (see complete/complete.js)
+ *   enhancer(spec)              finishes the rendered preview in the browser:
+ *                               { selector, run(elements, context) } — how
+ *                               math and diagrams become MathML and SVG.
+ *                               Never run by the parser or renderer, so
+ *                               plugins stay pure; see enhance.js
  *   theme(palette)              a named colour palette with a light and a
  *                               dark mode: { id, name, light, dark }
  *                               (see themes/tokens.js)
@@ -85,6 +96,8 @@ export function createRegistry() {
     // rule did not declare its triggers (so every line must try them all).
     blockTriggers: new Set(),
     inlineRules: [],
+    inlineFinishers: [],
+    enhancers: [],
     inlineTriggers: new Map(),
     delimiters: new Map(),
     renderers: new Map(),
@@ -161,6 +174,16 @@ export function pluginApi(registry, plugin) {
       const triggers = typeof rule.triggers === "string" ? [...rule.triggers] : rule.triggers;
       registry.inlineRules.push({ ...rule, triggers, plugin: owner, _order: order++ });
       reindex(registry);
+    },
+
+    inlineFinisher(fn) {
+      if (typeof fn !== "function") throw new Error(`Inline finisher from ${owner} is not a function`);
+      registry.inlineFinishers.push(fn);
+    },
+
+    enhancer(spec) {
+      required(spec, ["selector", "run"], `Enhancer from ${owner}`);
+      registry.enhancers.push({ ...spec, plugin: owner });
     },
 
     delimiter(spec) {

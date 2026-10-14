@@ -186,3 +186,26 @@
 .mh-tk-meta {
   color: var(--tk-meta);
 }
+
+/* ── Extensions, in the edit pane ──────────────────────────────────────── */
+
+.mh-md-strike {
+  text-decoration: line-through;
+}
+
+.mh-md-table-head {
+  font-weight: 700;
+}
+
+.mh-md-task {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.mh-md-footnote {
+  color: var(--tk-function);
+}
+
+.mh-md-math {
+  color: var(--md-code);
+}

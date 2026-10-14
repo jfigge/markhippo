@@ -1,17 +1,20 @@
 /*
  * Copyright 2026 Jason Figge
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of MarkHippo.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * MarkHippo is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * MarkHippo is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with MarkHippo. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /*
@@ -65,6 +68,7 @@ export class EditorView {
   }
 
   caretMoved() {
+    if (this.quiet) return;
     const { selectionStart, selectionEnd } = this.el;
     if (this.lastCaret && this.lastCaret[0] === selectionStart && this.lastCaret[1] === selectionEnd && this.lastText === this.value) {
       return;
@@ -231,6 +235,24 @@ export class EditorView {
     const { selectionStart: start, selectionEnd: end } = this.el;
     this.replaceRange(start, end, text);
     this.el.setSelectionRange(start + text.length, start + text.length);
+  }
+
+  // Change source text from elsewhere (ticking a task in the preview):
+  // undoable like typing, but the caret, the scroll and the focus stay put.
+  editAt(from, to, text) {
+    const { selectionStart, selectionEnd } = this.el;
+    const top = this.scroller.scrollTop;
+    const focus = document.activeElement;
+    const shift = (x) => (x <= from ? x : Math.max(from + text.length, x + text.length - (to - from)));
+    this.quiet = true;
+    this.el.focus({ preventScroll: true });
+    this.replaceRange(from, to, text);
+    this.el.setSelectionRange(shift(selectionStart), shift(selectionEnd));
+    this.scroller.scrollTop = top;
+    if (focus && focus !== this.el && focus instanceof HTMLElement) focus.focus({ preventScroll: true });
+    // The selection events this causes arrive later; they are not the
+    // user moving the caret.
+    setTimeout(() => (this.quiet = false), 0);
   }
 
   // Replace a range as if typed, so the browser's undo still works where it

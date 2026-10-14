@@ -148,3 +148,68 @@
     padding: 0;
   }
 }
+
+/* ── Extensions: task lists, footnotes, math, diagrams ─────────────────── */
+
+.mh-preview li:has(> input[type="checkbox"]:first-child),
+.mh-preview li:has(> p:first-child > input[type="checkbox"]:first-child) {
+  list-style: none;
+}
+
+.mh-preview li > input[type="checkbox"]:first-child,
+.mh-preview li > p:first-child > input[type="checkbox"]:first-child {
+  margin: 0 0.4em 0 -1.4em;
+  vertical-align: -0.1em;
+  accent-color: var(--brand);
+}
+
+.mh-preview del {
+  color: var(--subtext);
+}
+
+.mh-preview .footnotes {
+  margin-top: 2em;
+  padding-top: 0.5em;
+  border-top: 1px solid var(--surface-1);
+  color: var(--subtext);
+  font-size: 0.9em;
+}
+
+.mh-preview .footnote-ref a,
+.mh-preview .footnote-backref {
+  text-decoration: none;
+}
+
+.mh-preview .math-display {
+  display: block;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin: 1em 0;
+  padding: 0.25em 0;
+  text-align: center;
+}
+
+.mh-preview .math math[display="block"] {
+  margin: 0;
+}
+
+.mh-preview .mh-diagram {
+  overflow-x: auto;
+  margin: 1em 0;
+  text-align: center;
+}
+
+.mh-preview .mh-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.mh-preview .mh-diagram-error {
+  margin: 0 0 0.5em;
+  padding: 0;
+  background: none;
+  color: var(--error);
+  font-size: 0.85em;
+  text-align: left;
+  white-space: pre-wrap;
+}

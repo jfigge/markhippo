@@ -6,7 +6,7 @@ const unused = ["error", { argsIgnorePattern: "^_", ignoreRestSiblings: true }];
 
 export default [
   {
-    ignores: ["dist/**", "build/**", "node_modules/**"],
+    ignores: ["dist/**", "build/**", "node_modules/**", "src/vendor/**"],
   },
 
   {

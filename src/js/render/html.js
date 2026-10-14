@@ -1,17 +1,20 @@
 /*
  * Copyright 2026 Jason Figge
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of MarkHippo.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * MarkHippo is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * MarkHippo is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with MarkHippo. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /*
@@ -35,6 +38,8 @@
  *   safe         neutralise javascript:, vbscript:, file: and non-image data:
  *                URLs. Default false.
  *   sourceLines  put data-line="N" (the 1-based source line) on block
+ *                elements; a string names the attribute instead (the app
+ *                uses a per-session name raw HTML cannot guess)
  *                elements — the hook synced scroll will use. Default false.
  *   softbreak    what a soft line break renders as. Default "\n".
  *   headingIds   give headings ids from their text (render/slug.js), so
@@ -142,7 +147,9 @@ export class HtmlRenderer {
 
   // The attributes every block element gets: its source line, if asked for.
   attrs(node) {
-    return this.options.sourceLines && node.pos ? [["data-line", String(node.pos.start.line)]] : [];
+    const { sourceLines } = this.options;
+    if (!sourceLines || !node.pos) return [];
+    return [[typeof sourceLines === "string" ? sourceLines : "data-line", String(node.pos.start.line)]];
   }
 
   // A code block's content as HTML: coloured, if a plugin registered the

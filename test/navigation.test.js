@@ -1,17 +1,20 @@
 /*
  * Copyright 2026 Jason Figge
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of MarkHippo.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * MarkHippo is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * MarkHippo is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with MarkHippo. If not, see <https://www.gnu.org/licenses/>.
  */
 
 // navigation.test.js — the parser's structure for getting around: heading
@@ -30,7 +33,7 @@ const mh = commonMarkHippo();
 
 test("slugs: GitHub's scheme, unique per document", () => {
   assert.equal(slugify("Hello, World!"), "hello-world");
-  assert.equal(slugify("  Ünïcödé — Title?  "), "ünïcödé--title");
+  assert.equal(slugify("Ünïcödé — Title?"), "ünïcödé--title");
   assert.equal(slugify("snake_case and-dash"), "snake_case-and-dash");
   const slug = slugger();
   assert.deepEqual(["A", "a", "A-1", "a", "!!!", "?"].map(slug), ["a", "a-1", "a-1-1", "a-2", "section", "section-1"]);
@@ -104,4 +107,17 @@ test("](# suggests the document's headings by id", () => {
   assert.equal(best.label, "install-it");
   assert.equal(best.insert, "install-it)");
   assert.equal(best.detail, "## Install it");
+});
+
+test("outline ids are the preview's, whatever the whitespace; image alt text is left out", () => {
+  const src = "# a  b\n\n# a b\n\n# a\tb\n\n# ![logo](x.png) Title";
+  const ids = outline(mh.parse(src)).map((h) => h.id);
+  const html = mh.render(mh.parse(src), { headingIds: true });
+  assert.deepEqual(ids, ["a--b", "a-b", "ab", "-title"]);
+  for (const id of ids) assert.ok(html.includes(`id="${id}"`), id);
+});
+
+test("sourceLines can name its attribute", () => {
+  assert.match(mh.render(mh.parse("# x"), { sourceLines: "data-line-abc" }), /<h1 data-line-abc="1">/);
+  assert.match(mh.render(mh.parse("# x"), { sourceLines: true }), /<h1 data-line="1">/);
 });

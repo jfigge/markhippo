@@ -117,7 +117,17 @@
     <li><strong>Thematic breaks</strong>: <code>---</code>, <code>***</code> or <code>___</code> on a line of their own.</li>
     <li><strong>Raw HTML</strong>, backslash escapes such as <code>\*</code>, and entities such as <code>&amp;copy;</code>.</li>
   </ul>
-  <p>Tables, footnotes, task lists, math and Mermaid diagrams are not part of CommonMark. They are on the way as plugins (see <a href="#coming">Coming next</a>).</p>
+  <p>And, as plugins (each can be switched off under <strong>Plugins</strong>), GitHub's extensions and more:</p>
+  <ul>
+    <li><strong>Tables</strong>: rows of cells between pipes, with a row of dashes under the header. Colons in that row align a column: <code>:---</code> left, <code>:---:</code> centred, <code>---:</code> right.</li>
+    <li><strong>Task lists</strong>: <code>- [ ] to do</code> and <code>- [x] done</code>. Tick a box in the preview and the source is ticked too.</li>
+    <li><strong>Strikethrough</strong>: <code>~~text~~</code>.</li>
+    <li><strong>Bare links</strong>: <code>www.example.com</code>, <code>https://example.com</code> and email addresses link on their own.</li>
+    <li><strong>Footnotes</strong>: <code>[^1]</code> in the text and <code>[^1]: the note</code> anywhere; notes are numbered and listed at the end, with links back.</li>
+    <li><strong>Math</strong>: LaTeX between dollars, <code>$x^2$</code> inline or <code>$$</code> on lines of their own around a display equation (or a <code>```math</code> block).</li>
+    <li><strong>Diagrams</strong>: a <code>```mermaid</code> block becomes a flowchart, sequence diagram, Gantt chart, pie and more, drawn by <a href="https://mermaid.js.org/">Mermaid</a>.</li>
+  </ul>
+  <p>Math and diagrams are drawn by libraries MarkHippo carries with it, loaded only when a document needs them, so they work offline too.</p>
 
   <h2 id="privacy">Privacy and safety</h2>
   <p>MarkHippo runs entirely in your browser. Documents are never uploaded and nothing is tracked. The only requests the preview makes are for images that your document links to.</p>
@@ -130,7 +140,6 @@
 
   <h2 id="coming">Coming next</h2>
   <ul>
-    <li>Tables, footnotes, task lists, math and Mermaid diagrams, each with its own suggestions.</li>
     <li>Pasting and dropping images, and export to HTML, RTF and plain text.</li>
     <li>A desktop app that you can extend with your own plugins.</li>
   </ul>

@@ -20,6 +20,11 @@ library:
 
 An outline, a minimap and synced scrolling come from the same tree.
 
+Beyond CommonMark, plugins add GitHub Flavored Markdown — tables, task
+lists, strikethrough, bare-URL autolinks, the tag filter — plus footnotes,
+LaTeX math (drawn as MathML by the vendored [Temml](https://temml.org/)) and
+[Mermaid](https://mermaid.js.org/) diagrams. They pass cmark-gfm's examples.
+
 Themes are palettes with a light and a dark mode — Hippo, Catppuccin, Grey,
 High contrast, or your own, made in the built-in theme editor.
 
@@ -38,7 +43,8 @@ in some twenty languages.
   [`docs/features/01-highlighting.md`](docs/features/01-highlighting.md),
   autocomplete in [`docs/features/02-autocomplete.md`](docs/features/02-autocomplete.md),
   themes in [`docs/features/03-themes.md`](docs/features/03-themes.md),
-  navigation in [`docs/features/04-navigation.md`](docs/features/04-navigation.md)
+  navigation in [`docs/features/04-navigation.md`](docs/features/04-navigation.md),
+  extensions in [`docs/features/05-extensions.md`](docs/features/05-extensions.md)
 
 ## Develop
 
@@ -50,9 +56,11 @@ make install       # dev tooling: eslint, html-validate
 make serve         # http://localhost:8080
 make check         # lint + validate + tests (incl. the CommonMark spec suite)
 make spec-report   # conformance by spec section
+make vendor        # refresh the vendored Temml and Mermaid from npm
 make site          # publish into ../hippoherd/website/markhippo/
 ```
 
 ## License
 
-Apache-2.0. See `LICENSE` and `NOTICE`.
+GPL-3.0-or-later (the GNU General Public License, version 3 or any later
+version). See `LICENSE` and `NOTICE`.

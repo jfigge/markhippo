@@ -54,8 +54,12 @@ src/js/minimap.js         DOM   the canvas
 so a scroll position cannot be copied across; it is mapped through anchors.
 
 - **Anchors:**
-  - Every preview element the renderer marked with `data-line` is paired
-    with that source line's top in the editor (the overlay's line element).
+  - Every preview element the renderer marked with its source line is
+    paired with that line's top in the editor (the overlay's line element).
+    The app names the mark attribute afresh each session
+    (`data-line-<random>`, the renderer's `sourceLines` option given a
+    string), so raw HTML in a document cannot plant anchors that would
+    derail the mapping.
   - `scrollMap` drops pairs that would run backwards in either view, such
     as a paragraph inside a list item.
   - It adds the two tops and the two bottoms as anchors, and interpolates
