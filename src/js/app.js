@@ -76,6 +76,13 @@ const storage = {
       return null;
     }
   },
+  remove(key) {
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      // Storage blocked: there is nothing to remove.
+    }
+  },
   // Answers whether it was kept.
   set(key, value) {
     try {
@@ -120,7 +127,11 @@ function createHost() {
   const errors = new Map();
   const onError = (plugin, err) => errors.set(plugin, err?.message ?? String(err));
   let host = createMarkHippo({ plugins, onError });
-  if (errors.size) host = createMarkHippo({ plugins: plugins.filter((p) => !errors.has(p)), onError });
+  // Again until none fails: one may fail only for want of one left out.
+  for (let failed = 0; errors.size > failed; ) {
+    failed = errors.size;
+    host = createMarkHippo({ plugins: plugins.filter((p) => !errors.has(p)), onError });
+  }
   pluginErrors = errors;
   return host;
 }
@@ -206,6 +217,12 @@ function store() {
   if (text === storedText) return;
   const kept = storage.set(STORE.document, text);
   if (kept) storedText = text;
+  // In the desktop app a reload takes the kept text as the open file's:
+  // an older one, perhaps another file's, must not stand in for it.
+  else if (desktop) {
+    storage.remove(STORE.document);
+    storedText = null;
+  }
   // A document too big for the browser's storage would come back as it
   // last fitted: say so while it is true.
   status.warning(kept ? "" : "Too big to keep in this browser: Save to keep a copy");
@@ -333,10 +350,11 @@ async function openFile(file) {
   // The desktop app opens the file itself, in place, so Save writes it back.
   if (desktop) {
     const path = desktop.pathForFile(file);
-    if (path) {
-      desktop.open(path);
-      return;
-    }
+    if (path) desktop.open(path);
+    // Not a file on disk (dragged from another app): loading it here would
+    // leave Save writing to the open document's file.
+    else status.note(`${file.name} is not a file on disk: save it, then open it`, { warn: true });
+    return;
   }
   load(await file.text(), file.name);
 }
@@ -380,7 +398,13 @@ function save() {
 // chooses). Answers whether it saved.
 async function saveInPlace({ as = false } = {}) {
   const text = editor.value;
-  const saved = await desktop.save(text, { as });
+  let saved;
+  try {
+    saved = await desktop.save(text, { as });
+  } catch (err) {
+    status.note(`Not saved: ${err?.message ?? err}`, { warn: true });
+    return false;
+  }
   if (!saved) return false;
   const moved = saved.path !== docPath;
   docPath = saved.path;
@@ -496,7 +520,14 @@ async function addImages(files, at) {
     try {
       // In a saved desktop document the picture is a file beside it;
       // otherwise (or if that fails) it goes in the document.
-      const beside = docPath ? await saveBeside(file) : null;
+      let beside = null;
+      if (docPath) {
+        try {
+          beside = await saveBeside(file);
+        } catch (err) {
+          console.warn("MarkHippo: the picture could not be saved beside the document:", err);
+        }
+      }
       image = beside ? { path: beside } : await importImage(file);
     } catch (err) {
       status.note(err.message, { warn: true });
@@ -812,10 +843,7 @@ const COMMANDS = {
 // last time; or, a reload, the one in the browser; or, as on the web, the
 // browser's — untitled.
 async function startDesktop() {
-  const start = await desktop.initial();
-  $("mh-export-pdf").hidden = false;
-  $("mh-about-version").textContent = `Version ${start.version} · desktop app`;
-  $("mh-about-version").hidden = false;
+  // Listening before asking: a document opened meanwhile is not missed.
   desktop.onLoad((doc) => {
     docPath = doc.path;
     savedText = doc.text;
@@ -827,6 +855,11 @@ async function startDesktop() {
     if (command.startsWith("export:")) return runExport(command.slice(7));
     return COMMANDS[command]?.();
   });
+  const untitled = storage.get(STORE.document) ?? SAMPLE;
+  const start = await desktop.initial(untitled);
+  $("mh-export-pdf").hidden = false;
+  $("mh-about-version").textContent = `Version ${start.version} · desktop app`;
+  $("mh-about-version").hidden = false;
   const doc = start.document;
   if (doc && start.reload) {
     docPath = doc.path;
@@ -840,10 +873,9 @@ async function startDesktop() {
     showName(doc.name);
     return doc.text;
   }
-  const text = storage.get(STORE.document) ?? SAMPLE;
-  savedText = text;
+  savedText = untitled;
   showName("untitled.md");
-  return text;
+  return untitled;
 }
 
 // ── Start ──────────────────────────────────────────────────────────────────

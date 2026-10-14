@@ -91,6 +91,9 @@ const doc = { path: null, savedText: "", dirty: false };
 let requested = null;
 // The page has asked for its first document; a second ask is a reload.
 let started = false;
+// The first document being decided: a file opened meanwhile waits for it,
+// so it is not overwritten by the first, nor sent before the page listens.
+let starting = Promise.resolve();
 
 let mainWindow = null;
 let guideWindow = null;
@@ -338,6 +341,7 @@ async function openDocument(file) {
     showWindow();
     return;
   }
+  await starting;
   if (!(await confirmDiscard())) return;
   let text;
   try {
@@ -401,24 +405,31 @@ function bridge() {
   // The first document: a file asked for at launch, else the last session's
   // file, else nothing (the page keeps its own, as on the web). Asked again
   // (a reload), the document as it stands: the page has the text.
-  handle("initial", async () => {
+  // `untitled` is the text the page starts with when there is no file (its
+  // own, kept in the browser): the untitled document's saved text, so a
+  // reload does not count it as changed.
+  handle("initial", async (untitled) => {
     const info = { version: app.getVersion(), platform: process.platform };
     if (started) return { ...info, reload: true, document: { path: doc.path, name: docName(), savedText: doc.savedText } };
     started = true;
-    for (const file of [requested, await lastSession()]) {
-      if (!file) continue;
-      try {
-        const text = await readDocument(file);
-        Object.assign(doc, { path: file, savedText: text, dirty: false });
-        remember(file);
-        updateTitle();
-        return { ...info, document: { path: file, name: path.basename(file), text } };
-      } catch {
-        // Moved or deleted since: try the next, or start untitled.
+    starting = (async () => {
+      for (const file of [requested, await lastSession()]) {
+        if (!file) continue;
+        try {
+          const text = await readDocument(file);
+          Object.assign(doc, { path: file, savedText: text, dirty: false });
+          remember(file);
+          updateTitle();
+          return { ...info, document: { path: file, name: path.basename(file), text } };
+        } catch {
+          // Moved or deleted since: try the next, or start untitled.
+        }
       }
-    }
-    requested = null;
-    return { ...info, document: null };
+      requested = null;
+      doc.savedText = isText(untitled) ? untitled : "";
+      return { ...info, document: null };
+    })();
+    return starting;
   });
 
   handle("open", async (file) => {
@@ -529,17 +540,20 @@ function bridge() {
     return found;
   });
 
-  handle("open-plugins-folder", async () => {
-    await fs.mkdir(pluginsDir(), { recursive: true });
-    const failed = await shell.openPath(pluginsDir());
-    if (failed) throw new Error(failed);
-  });
+  handle("open-plugins-folder", openPluginsFolder);
 
   ipcMain.handle("reply", (event, id, result) => {
     if (!fromMain(event)) return;
     answers.get(id)?.(result);
     answers.delete(id);
   });
+}
+
+// The plugins folder, made if need be, in Finder or Explorer.
+async function openPluginsFolder() {
+  await fs.mkdir(pluginsDir(), { recursive: true });
+  const failed = await shell.openPath(pluginsDir());
+  if (failed) throw new Error(failed);
 }
 
 // ── The menu ─────────────────────────────────────────────────────────────────
@@ -591,7 +605,10 @@ function buildMenu() {
   ];
   const plugins = [
     { label: "Show Plugins…", click: command("show:plugins") },
-    { label: "Open Plugins Folder", click: () => fs.mkdir(pluginsDir(), { recursive: true }).then(() => shell.openPath(pluginsDir())) },
+    {
+      label: "Open Plugins Folder",
+      click: () => openPluginsFolder().catch((err) => console.error("[main] could not open the plugins folder:", err)),
+    },
     { label: "Reload Plugins", click: () => mainWindow?.webContents.reload() },
     { type: "separator" },
     { label: "Writing a Plugin", click: () => openExternal(PLUGIN_GUIDE) },
@@ -633,10 +650,14 @@ app.on("open-file", (event, file) => {
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
-  requested = requested ?? policy.documentFromArgv(process.argv);
-  app.on("second-instance", (_event, argv) => {
+  // A relative path is the launching shell's: resolved now, so the session
+  // and the recent documents hold where the file really is.
+  const launched = policy.documentFromArgv(process.argv);
+  requested = requested ?? (launched && path.resolve(launched));
+  app.on("second-instance", (_event, argv, workingDirectory) => {
     const file = policy.documentFromArgv(argv);
-    if (file) openDocument(path.resolve(file));
+    // Relative to where the second launch ran, not this process.
+    if (file) openDocument(path.resolve(workingDirectory, file));
     else showWindow();
   });
 

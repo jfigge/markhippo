@@ -28,7 +28,8 @@ const { contextBridge, ipcRenderer, webUtils } = require("electron");
 contextBridge.exposeInMainWorld("markhippoDesktop", {
   // { version, platform, document: { path, name, text } | null } — or, on
   // a reload, { …, reload: true, document: { path, name, savedText } }.
-  initial: () => ipcRenderer.invoke("initial"),
+  // `untitled`: the text the page starts with if there is no file.
+  initial: (untitled) => ipcRenderer.invoke("initial", typeof untitled === "string" ? untitled : ""),
   // Open a file: the one given (a dropped file's path), or one chosen.
   open: (file) => ipcRenderer.invoke("open", typeof file === "string" ? file : null),
   newDocument: () => ipcRenderer.invoke("new"),
