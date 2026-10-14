@@ -13,7 +13,7 @@ The page has two separate choices.
 
   | Palette | Light / dark |
   |---|---|
-  | Hippo | the default: the Hippo family's greys with the brand olive |
+  | Hippo | the default: the Hippo family's greys with the brand orange |
   | Catppuccin | Latte / Mocha |
   | Grey | Rest Hippo's greys |
   | High contrast | black and white with strong colours |
@@ -59,7 +59,7 @@ A palette is `{ id, name, light, dark }`. Each mode maps every token in
 - Translucent colours are derived in CSS, not stored. The editor's
   selection and the hard-break tint use
   `color-mix(in srgb, var(--accent) N%, transparent)`.
-- The brand olive (`--brand`, `--on-brand`) is identity, not theme, so it
+- The brand orange (`--brand`, `--on-brand`) is identity, not theme, so it
   stays fixed.
 - `CONTRAST_PAIRS` lists each text token and the background it is read
   against:

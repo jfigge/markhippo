@@ -1,0 +1,104 @@
+{
+  "name": "markhippo-desktop",
+  "productName": "MarkHippo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The discoverable, extensible markdown editor — desktop build.",
+  "license": "GPL-3.0-or-later",
+  "author": "Jason Figge",
+  "homepage": "https://hippoherd.com/markhippo/about/",
+  "main": "main.js",
+  "desktopName": "markhippo.desktop",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^42.7.0",
+    "electron-builder": "~26.17.0"
+  },
+  "build": {
+    "appId": "com.hippoherd.markhippo",
+    "productName": "MarkHippo",
+    "copyright": "Copyright © 2026 Jason Figge",
+    "artifactName": "MarkHippo-${version}-${arch}.${ext}",
+    "publish": null,
+    "npmRebuild": false,
+    "directories": {
+      "output": "dist",
+      "buildResources": "icons"
+    },
+    "files": [
+      "main.js",
+      "policy.js",
+      "preload.js",
+      "package.json",
+      "icons/linux/512x512.png",
+      "web/**/*"
+    ],
+    "fileAssociations": [
+      {
+        "ext": [
+          "md",
+          "markdown",
+          "mdown",
+          "mkd",
+          "mkdn"
+        ],
+        "name": "Markdown document",
+        "description": "Markdown document",
+        "mimeType": "text/markdown",
+        "role": "Editor",
+        "rank": "Alternate"
+      }
+    ],
+    "mac": {
+      "icon": "icons/mac.png",
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": true,
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ]
+    },
+    "win": {
+      "icon": "icons/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "artifactName": "MarkHippo-Setup-${version}-${arch}.${ext}",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "buildUniversalInstaller": false
+    },
+    "linux": {
+      "icon": "icons/linux",
+      "category": "Office",
+      "syncDesktopName": true,
+      "mimeTypes": [
+        "text/markdown"
+      ],
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
+    }
+  }
+}

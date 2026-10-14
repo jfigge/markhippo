@@ -129,7 +129,9 @@ Inspired by Typora: **paste or drag images straight into the editor**; the app m
 
 Likely split: the **desktop app** manages an assets folder on disk (configurable, as Typora does); the **website** has no filesystem, so it leans on base64 or an upload. To be decided.
 
-**Decided for the website (phase 7):** base64, but not inline. The image goes in a reference definition at the end of the document (`![alt][image-1]` in the text, `[image-1]: data:image/png;base64,…` at the end), so the file stays self-contained and the prose stays readable. Large images are scaled to 1600 px wide. See `docs/features/06-images-export.md`. The desktop app's assets folder is still to come.
+**Decided for the website (phase 7):** base64, but not inline. The image goes in a reference definition at the end of the document (`![alt][image-1]` in the text, `[image-1]: data:image/png;base64,…` at the end), so the file stays self-contained and the prose stays readable. Large images are scaled to 1600 px wide. See `docs/features/06-images-export.md`.
+
+**Decided for the desktop (phase 8):** a saved document's pictures go in `assets/` beside it, linked by relative path; an untitled one embeds them as the web does. Making the folder configurable is still to come. See `docs/features/07-desktop.md`.
 
 ---
 

@@ -6,7 +6,7 @@ const unused = ["error", { argsIgnorePattern: "^_", ignoreRestSiblings: true }];
 
 export default [
   {
-    ignores: ["dist/**", "build/**", "node_modules/**", "src/vendor/**"],
+    ignores: ["dist/**", "build/**", "node_modules/**", "src/vendor/**", "electron/node_modules/**", "electron/dist/**", "electron/web/**"],
   },
 
   {
@@ -48,9 +48,22 @@ export default [
       "src/js/render/**/*.js",
       "src/js/plugins/**/*.js",
       "src/js/debounce.js",
+      "examples/plugins/**/*.js",
     ],
     languageOptions: {
       globals: { ...globals.es2021, setTimeout: "readonly", clearTimeout: "readonly" },
+    },
+  },
+
+  // ── The Electron shell: Node's main process, CommonJS ─────────────────────
+  // electron/package.json has no "type", so these load as CommonJS, like the
+  // sibling apps' main processes. (preload.js runs in the window, sandboxed,
+  // but is CommonJS too and sees only what Electron gives a preload.)
+  {
+    files: ["electron/**/*.js"],
+    languageOptions: {
+      sourceType: "commonjs",
+      globals: { ...globals.node },
     },
   },
 

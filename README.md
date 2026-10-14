@@ -33,6 +33,13 @@ document, which stays one self-contained file. **Export** prints the
 document or saves it as a PDF, an HTML page, RTF for Pages and Word, or
 plain text, or copies it as rich text to paste into an email.
 
+The **desktop app** (macOS, Windows, Linux) is the same page in Electron,
+plus what a browser cannot do. It opens and saves files in place, keeps
+pasted pictures in an `assets/` folder beside the document, and loads
+**your own plugins** from a folder: see [`docs/PLUGINS.md`](docs/PLUGINS.md).
+Like the page, it makes no network requests except for a document's
+images.
+
 The core is a plugin host. CommonMark itself is a plugin, written against the
 same API anyone else would use, and so is the syntax colouring of fenced code
 in some twenty languages.
@@ -50,7 +57,10 @@ in some twenty languages.
   themes in [`docs/features/03-themes.md`](docs/features/03-themes.md),
   navigation in [`docs/features/04-navigation.md`](docs/features/04-navigation.md),
   extensions in [`docs/features/05-extensions.md`](docs/features/05-extensions.md),
-  images and export in [`docs/features/06-images-export.md`](docs/features/06-images-export.md)
+  images and export in [`docs/features/06-images-export.md`](docs/features/06-images-export.md),
+  the desktop app in [`docs/features/07-desktop.md`](docs/features/07-desktop.md)
+- **Writing a plugin:** [`docs/PLUGINS.md`](docs/PLUGINS.md), with an
+  example in [`examples/plugins/`](examples/plugins/)
 
 ## Develop
 
@@ -65,6 +75,21 @@ make spec-report   # conformance by spec section
 make vendor        # refresh the vendored Temml and Mermaid from npm
 make site          # publish into ../hippoherd/website/markhippo/
 ```
+
+The desktop app (`electron/`, with its own dependencies, installed on first
+use):
+
+```sh
+make desktop        # run the shell on src/; ⌘R reloads an edit
+make desktop-smoke  # drive it end to end in a throwaway profile
+make desktop-pack   # an unsigned app for this machine
+make dist-mac       # the .dmgs, signed and notarized when release.env says how
+```
+
+Pushing `main` with a new `version` in `package.json` builds, signs and
+publishes the six installers as a GitHub Release
+(`.github/workflows/release.yml`, JsonHippo's workflow; its header lists
+the secrets it needs).
 
 ## License
 

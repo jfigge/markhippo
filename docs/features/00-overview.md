@@ -7,7 +7,9 @@ highlighting, the code plugin, the plugin list) is in
 `01-highlighting.md`, phase 3 (autocomplete) in `02-autocomplete.md`,
 phase 4 (themes) in `03-themes.md`, phase 5 (synced scroll, outline,
 minimap) in `04-navigation.md`, phase 6 (extensions) in
-`05-extensions.md`, phase 7 (images, export) in `06-images-export.md`.*
+`05-extensions.md`, phase 7 (images, export) in `06-images-export.md`,
+phase 8 (the desktop app, user plugins) in `07-desktop.md`. Writing a
+plugin is in `../PLUGINS.md`.*
 
 ## Layout
 
@@ -29,7 +31,10 @@ src/vendor/               Temml and Mermaid, loaded on demand (see NOTICE)
 src/js/plugins/themes     more palettes: Catppuccin, Grey, High contrast
 src/js/plugins/commonmark CommonMark: parsing, HTML, colouring (pure)
 src/js/plugins/code       syntax colouring for fenced code     (pure)
-src/js/*.js               the page: editor, preview, status bar, app wiring
+src/js/*.js               the page: editor, preview, status bar, app wiring;
+                          desktop.js is its side of the desktop app
+electron/                 the desktop shell: main.js, preload.js, policy.js (pure)
+examples/plugins/         a plugin to copy: ==highlight==
 test/                     node --test; the CommonMark spec suite in test/fixtures/commonmark/
 ```
 
@@ -175,7 +180,7 @@ everything is plain paragraphs. CommonMark (`plugins/commonmark/`) is
 installed through this API and nothing else, and `test/plugins.test.js`
 checks that, along with a toy third-party plugin.
 
-## Not yet (later milestones)
+## Not yet
 
-- Images and export.
-- The Electron shell.
+- Word (`.docx`) export, on the back burner as the design has it.
+- A choice of folder for pasted pictures in the desktop app.
