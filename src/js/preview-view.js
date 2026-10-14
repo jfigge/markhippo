@@ -37,7 +37,11 @@ import { potentiallyUnsafe } from "./render/html.js";
 // Elements raw HTML may not bring into the page at all. (Scripts, frames
 // and objects are blocked by the CSP too; removing them keeps that true
 // wherever the page is hosted.)
-const REMOVED = "meta, base, link, script, style, iframe, frame, frameset, object, embed, form, portal";
+// SVG animation is among them: <set attributeName="href" to="…"> would give
+// a link a new address after it was checked.
+const REMOVED =
+  "meta, base, link, script, style, iframe, frame, frameset, object, embed, form, portal, svg set, svg animate, svg animateMotion, svg animateTransform";
+const XLINK = "http://www.w3.org/1999/xlink";
 // Attributes that hold a URL something could be loaded from or run.
 const URL_ATTRIBUTES = ["href", "src", "action", "formaction", "xlink:href", "poster", "background"];
 // (An SVG's xlink:href is namespaced, which attribute selectors do not
@@ -62,17 +66,26 @@ export class PreviewView {
     this.scroller.scrollTop = top;
   }
 
+  // Every link-like element is caught — HTML links, image-map areas, SVG
+  // links (whose address may be xlink:href) — and never followed in place.
   click(e) {
-    const a = e.target.closest("a[href]");
+    const a = e.target.closest("a, area");
     if (!a || !this.el.contains(a)) return;
-    const href = a.getAttribute("href");
     e.preventDefault();
+    const href = a.getAttribute("href") ?? a.getAttributeNS(XLINK, "href");
+    if (!href) return;
     if (href.startsWith("#")) {
       const target = href.length > 1 && this.el.querySelector(`[id="${CSS.escape(fragment(href))}"]`);
       if (target) target.scrollIntoView({ block: "start" });
       return;
     }
-    if (href) window.open(a.href, "_blank", "noopener,noreferrer");
+    let url;
+    try {
+      url = new URL(href, document.baseURI);
+    } catch {
+      return;
+    }
+    if (!potentiallyUnsafe(url.href)) window.open(url.href, "_blank", "noopener,noreferrer");
   }
 }
 

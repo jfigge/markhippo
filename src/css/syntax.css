@@ -6,8 +6,8 @@
  *   .mh-md-*   markdown syntax in the edit pane (plugins/commonmark/highlight.js)
  *   .mh-tk-*   code tokens in fenced blocks, both panes (plugins/code/)
  *
- * The palette is Catppuccin's — Mocha for dark, a deepened Latte for light
- * (every light colour is at least 4.5:1 on the code background, #f3f3f5).
+ * These are the Hippo palette's values, the defaults before a script runs;
+ * the palette in use (js/theme-manager.js) sets them all on <html>.
  *
  * The edit pane's text is laid out under a <textarea> and must keep its
  * metrics exactly, so nothing here may change a glyph's width: colour,
@@ -28,7 +28,6 @@
   --tk-variable: #b4237a;
   --tk-meta: #5b50c8;
   --md-code: #0f7a80;
-  --md-break: rgb(129 142 0 / 22%);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -45,7 +44,6 @@
     --tk-variable: #f5c2e7;
     --tk-meta: #b4befe;
     --md-code: #94e2d5;
-    --md-break: rgb(195 209 26 / 22%);
   }
 }
 
@@ -62,7 +60,6 @@
   --tk-variable: #f5c2e7;
   --tk-meta: #b4befe;
   --md-code: #94e2d5;
-  --md-break: rgb(195 209 26 / 22%);
 }
 
 /* ── Markdown, in the edit pane ────────────────────────────────────────── */
@@ -136,7 +133,7 @@
 
 /* Trailing spaces that make a hard break would otherwise be invisible. */
 .mh-md-break {
-  background: var(--md-break);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 /* ── Code tokens, in both panes ────────────────────────────────────────── */

@@ -24,7 +24,7 @@ import commonmark from "../src/js/plugins/commonmark/index.js";
 import code from "../src/js/plugins/code/index.js";
 import { completionContext, continuation } from "../src/js/complete/context.js";
 import { rank, score } from "../src/js/complete/match.js";
-import { expandSnippet } from "../src/js/complete/snippet.js";
+import { expandSnippet, wraps } from "../src/js/complete/snippet.js";
 
 const mh = createMarkHippo({ plugins: [commonmark, code] });
 
@@ -139,4 +139,28 @@ test("list markers continue as spaces, quote markers stay", () => {
   assert.equal(continuation("> - "), ">   ");
   assert.equal(continuation("  10. > "), "      > ");
   assert.equal(continuation(""), "");
+});
+
+test("deeply nested lines stay fast (no regex backtracking)", () => {
+  for (const lead of ["> ".repeat(40), "-  ".repeat(40), "1.  ".repeat(30)]) {
+    const text = lead + "a /";
+    const t0 = performance.now();
+    completionContext(null, text, text.length, { explicit: true });
+    assert.ok(performance.now() - t0 < 50, JSON.stringify(lead.slice(0, 6)));
+  }
+});
+
+test("an unclosed fence still holds the empty line after it", () => {
+  assert.equal(contextAt("```js\n|", { explicit: true }), null);
+  assert.equal(contextAt("> ```\n> x\n> |", { explicit: true }), null);
+});
+
+test("a reference label over lines in a quote loses the quote markers", () => {
+  assert.deepEqual(suggest("> [x][|\n>\n> [foo\n> bar]: /url"), ["foo bar"]);
+});
+
+test("only snippets with a placeholder can wrap a selection", () => {
+  assert.ok(wraps("**${bold}**"));
+  assert.ok(!wraps("```$0\n\n```"));
+  assert.ok(!wraps(undefined));
 });

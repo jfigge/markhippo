@@ -15,16 +15,35 @@
  */
 
 /*
- * theme.js — a classic script, loaded in <head> before the stylesheet paints,
- * so a pinned theme is applied before the first frame instead of flashing
- * from the system theme to the saved one. The toggle itself lives in app.js.
+ * theme.js — a classic script, loaded in <head> before the stylesheets
+ * paint, so the saved theme is on the page from the first frame instead of
+ * flashing from the default to it. It reads two things app.js saves:
+ *
+ *   markhippo.theme       the mode: "light", "dark" or "system" (or unset)
+ *   markhippo.theme.vars  the chosen palette's colours, { light, dark }
+ *
+ * and puts the colours for the resolved mode on <html>, as
+ * js/theme-manager.js does once the app is running. Only custom properties
+ * with #rrggbb values are applied, whatever is in storage.
  */
 (function applySavedTheme() {
   "use strict";
+  var root = document.documentElement;
   try {
-    var theme = window.localStorage.getItem("markhippo.theme");
-    if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+    var mode = window.localStorage.getItem("markhippo.theme");
+    if (mode !== "light" && mode !== "dark") {
+      mode = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    root.dataset.theme = mode;
+    var cached = JSON.parse(window.localStorage.getItem("markhippo.theme.vars") || "null");
+    var vars = cached && cached[mode];
+    if (!vars || typeof vars !== "object") return;
+    for (var name in vars) {
+      if (/^--[a-z0-9-]+$/.test(name) && /^#[0-9a-f]{6}$/i.test(vars[name])) root.style.setProperty(name, vars[name]);
+    }
+    root.style.colorScheme = mode;
   } catch {
-    // Storage blocked (privacy mode, file://): follow the system theme.
+    // Storage blocked (privacy mode, file://) or unreadable: the defaults
+    // in the stylesheets follow the system.
   }
 })();

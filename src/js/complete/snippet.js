@@ -29,7 +29,8 @@
  * With no placeholder and no $0 the cursor goes to the end. When text was
  * selected, it fills the first placeholder and the next one (if any) is
  * selected instead — so "Link" with "MarkHippo" selected gives
- * [MarkHippo](https://) with the URL selected.
+ * [MarkHippo](https://) with the URL selected. (Only snippets with a
+ * placeholder can wrap a selection: see wraps().)
  */
 
 export function expandSnippet(snippet, { prefix = "", selection = "" } = {}) {
@@ -61,4 +62,10 @@ export function expandSnippet(snippet, { prefix = "", selection = "" } = {}) {
   else if (holders.length) select = holders[0];
   else select = [caret ?? text.length, caret ?? text.length];
   return { text, select };
+}
+
+// Can this snippet wrap a selection? Only if it has a placeholder to put it
+// in — anything else would replace the selected text.
+export function wraps(snippet) {
+  return /\$\{[^}]*\}/.test(snippet ?? "");
 }

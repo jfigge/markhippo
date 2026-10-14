@@ -34,6 +34,7 @@
     <ol>
       <li><a href="#editing">Writing and the preview</a></li>
       <li><a href="#suggest">Suggestions as you type</a></li>
+      <li><a href="#themes">Themes</a></li>
       <li><a href="#files">Opening and saving</a></li>
       <li><a href="#keys">Keyboard</a></li>
       <li><a href="#syntax">What markdown it understands</a></li>
@@ -49,7 +50,7 @@
   <p>Code in a fenced block is coloured for its language, named after the opening fence (<code>```python</code>). MarkHippo knows JavaScript, TypeScript, JSON, YAML, Python, HTML and XML, CSS, shell, SQL, C, C++, C#, Java, Kotlin, Go, Rust, Swift, INI and TOML, Dockerfiles and diffs, and the usual short names for them (<code>js</code>, <code>py</code>, <code>yml</code>, <code>sh</code>…).</p>
   <p>Drag the bar between the panes to resize them. You can also focus the bar and use the arrow keys. On a narrow screen the preview sits below the source.</p>
   <p>The status bar shows how long the last parse took and whether the whole document or only part of it was parsed. It also shows the document's size and the cursor's line and column.</p>
-  <p>The header button switches the theme between System (follow the operating system), Light and Dark.</p>
+  <p>The mode button in the header switches between System (follow the operating system), Light and Dark.</p>
 
   <h2 id="suggest">Suggestions as you type</h2>
   <p>You don't need to remember markdown's syntax: MarkHippo offers it where it fits, in a list right at the cursor.</p>
@@ -58,10 +59,16 @@
     <li><strong>Type <kbd>/</kbd> at the start of a word</strong> in the middle of a line for links, images, bold, italic, inline code and the like.</li>
     <li><strong>Start a code fence</strong> (<code>```</code>) for the languages MarkHippo can colour.</li>
     <li><strong>Type <code>][</code></strong> after a link's text for the reference labels your document defines.</li>
-    <li><strong>Press <kbd>Ctrl</kbd>+<kbd>Space</kbd></strong> anywhere to ask. With text selected, the suggestion wraps it: select a word, press <kbd>Ctrl</kbd>+<kbd>Space</kbd> and choose Bold.</li>
+    <li><strong>Press <kbd>Ctrl</kbd>+<kbd>Space</kbd></strong> (or <kbd>Alt</kbd>+<kbd>/</kbd>, <kbd>⌥</kbd>+<kbd>/</kbd> on a Mac, where Ctrl+Space usually switches keyboard language) anywhere to ask. With text selected, the suggestion wraps it: select a word, press <kbd>Ctrl</kbd>+<kbd>Space</kbd> and choose Bold.</li>
   </ul>
   <p>Keep typing to narrow the list: <kbd>/h2</kbd>, <kbd>/quote</kbd> or <kbd>/cb</kbd> (the initials of Code block) all work. Use <kbd>↑</kbd> and <kbd>↓</kbd> to choose, <kbd>Enter</kbd> or <kbd>Tab</kbd> to insert, and <kbd>Esc</kbd> to close the list. Each suggestion shows the markdown it stands for, so the list doubles as a cheat sheet. After inserting, the part you'll want to change, such as a heading's text or a link's address, is selected, ready to type over.</p>
-  <p>Nothing is suggested inside code, and a <kbd>/</kbd> in the middle of a word or a web address never opens the list.</p>
+  <p>Nothing is suggested inside code, and a <kbd>/</kbd> in the middle of a word or a web address never opens the list. When the list opens by itself on a code fence or after <code>][</code>, nothing in it is chosen until you type or press an arrow key, so <code>```</code> followed by <kbd>Enter</kbd> is still just a new line.</p>
+
+  <h2 id="themes">Themes</h2>
+  <p><strong>Themes</strong> in the header opens the palettes. Each palette has a light and a dark version, and the mode (System, Light or Dark, in the dialog or the header button) picks between them. MarkHippo comes with Hippo, Catppuccin, Grey (the same greys as Rest Hippo) and High contrast. Choosing one applies it straight away.</p>
+  <p>To make your own, choose a palette and press <strong>Duplicate</strong>, or <strong>New</strong> to start from Hippo. Rename it and change any colour, in the Light and Dark tabs, with the colour picker or by typing a hex value. The page shows the tab you're editing as you go, and your theme is saved as you edit it. Built-in palettes can't be changed, only copied.</p>
+  <p>Beside each text colour is its contrast against the background it's read on. WCAG AA asks for 4.5:1; anything below that is shown in red. Every built-in palette meets it.</p>
+  <p><strong>Export</strong> saves a theme as a <code>.markhippo-theme.json</code> file to keep or share, and <strong>Import…</strong> adds one, including Rest Hippo's theme files. Your themes live in this browser, like your document.</p>
 
   <h2 id="files">Opening and saving</h2>
   <ul>
@@ -77,7 +84,7 @@
     <thead><tr><th scope="col">Keys</th><th scope="col">Does</th></tr></thead>
     <tbody>
       <tr><td><kbd>/</kbd> at the start of a line or word</td><td>Suggest blocks, or inline elements (see <a href="#suggest">Suggestions</a>)</td></tr>
-      <tr><td><kbd>Ctrl</kbd>+<kbd>Space</kbd></td><td>Suggest what fits at the cursor</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Space</kbd> or <kbd>Alt</kbd>/<kbd>⌥</kbd>+<kbd>/</kbd></td><td>Suggest what fits at the cursor</td></tr>
       <tr><td><kbd>↑</kbd> <kbd>↓</kbd>, <kbd>Enter</kbd> or <kbd>Tab</kbd>, <kbd>Esc</kbd></td><td>In the suggestion list: choose, insert, close</td></tr>
       <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>Indent or outdent the current line, or every selected line, by two spaces</td></tr>
       <tr><td><kbd>Esc</kbd>, then <kbd>Tab</kbd></td><td>Move focus out of the editor</td></tr>
@@ -113,7 +120,6 @@
 
   <h2 id="coming">Coming next</h2>
   <ul>
-    <li>Themes, with light, dark and named palettes, and a theme editor.</li>
     <li>An outline, a minimap, and scrolling that keeps the source and the preview in step.</li>
     <li>Tables, footnotes, task lists, math and Mermaid diagrams, each with its own suggestions.</li>
     <li>Pasting and dropping images, and export to HTML, RTF and plain text.</li>

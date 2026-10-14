@@ -31,7 +31,7 @@
  */
 
 import { rank } from "./complete/match.js";
-import { expandSnippet } from "./complete/snippet.js";
+import { expandSnippet, wraps } from "./complete/snippet.js";
 import { lineStartAt } from "./highlight/lines.js";
 
 // What may have been typed after the start of a suggestion, per context.
@@ -90,14 +90,16 @@ export class Autocomplete {
     if (typing) this.maybeOpen();
   }
 
-  // After the caret moved: close if it left the suggestion.
+  // After the caret moved: anywhere but where typing left it (or, wrapping,
+  // off the selection), the suggestion no longer applies.
   caretMoved() {
     // Back at (or before) a dismissed suggestion's start: it may be offered
     // again.
     if (this.el.selectionStart <= this.dismissed) this.dismissed = -1;
-    if (!this.state || this.state.wrap) return;
+    if (!this.state) return;
     const { selectionStart, selectionEnd } = this.el;
-    if (selectionStart !== selectionEnd || selectionStart < this.state.context.from) this.close();
+    const [start, end] = this.state.caret;
+    if (selectionStart !== start || selectionEnd !== end) this.close();
   }
 
   // Open if the cursor is somewhere a suggestion belongs.
@@ -116,6 +118,8 @@ export class Autocomplete {
     this.dismissed = -1;
     const found = this.complete(value, selectionStart, { explicit: true });
     const wrap = selectionStart !== selectionEnd ? value.slice(selectionStart, selectionEnd) : null;
+    // Wrapping, only what has a placeholder to put the selection in.
+    if (found && wrap) found.items = found.items.filter((item) => wraps(item.insert));
     this.start(found, { explicit: true, wrap });
   }
 
@@ -123,7 +127,10 @@ export class Autocomplete {
     this.close();
     if (!found || !found.items.length) return;
     if (!explicit && found.context.from === this.dismissed) return;
-    this.state = { context: found.context, all: found.items, items: [], active: 0, explicit, wrap };
+    // Opened by itself on a fence or a "][", nothing is chosen until an
+    // arrow key says so: a plain ``` and Enter must stay just that.
+    const passive = !explicit && found.context.kind !== "block" && found.context.kind !== "inline";
+    this.state = { context: found.context, all: found.items, items: [], active: passive ? -1 : 0, passive, explicit, wrap };
     if (this.refresh()) this.el.setAttribute("aria-expanded", "true");
   }
 
@@ -152,7 +159,10 @@ export class Autocomplete {
     }
     this.state.query = query;
     this.state.items = items;
-    this.state.active = Math.min(this.state.active, items.length - 1);
+    // Typing a query is choosing too.
+    if (this.state.passive && query) this.state.passive = false;
+    this.state.active = this.state.passive ? -1 : Math.max(0, Math.min(this.state.active, items.length - 1));
+    this.state.caret = [this.el.selectionStart, this.el.selectionEnd];
     this.render();
     return true;
   }
@@ -171,9 +181,15 @@ export class Autocomplete {
     this.el.setAttribute("aria-expanded", "false");
   }
 
-  // Keys while open (and Ctrl+Space always). Answers whether it used the key.
+  // Keys while open (and the request keys always). Answers whether it used
+  // the key. Ctrl+Space is the usual request key, but macOS gives it to
+  // switching input sources by default, so Alt+/ asks too.
   keydown(e) {
-    if (e.key === " " && e.ctrlKey && !e.metaKey && !e.altKey) {
+    // Mid-composition (an IME), the keys are the IME's.
+    if (e.isComposing || e.keyCode === 229) return false;
+    const ctrlSpace = e.key === " " && e.ctrlKey && !e.metaKey && !e.altKey;
+    const altSlash = e.code === "Slash" && e.altKey && !e.ctrlKey && !e.metaKey;
+    if (ctrlSpace || altSlash) {
       e.preventDefault();
       this.request();
       return true;
@@ -181,10 +197,18 @@ export class Autocomplete {
     if (!this.state) return false;
     const n = this.state.items.length;
     const moves = { ArrowDown: 1, ArrowUp: -1, PageDown: 8, PageUp: -8 };
-    if (e.key in moves && !e.shiftKey && !e.altKey && !e.metaKey && !e.ctrlKey) {
-      const to = this.state.active + moves[e.key];
+    const plain = !e.shiftKey && !e.altKey && !e.metaKey && !e.ctrlKey;
+    if (e.key in moves && plain) {
+      this.state.passive = false;
+      const from = this.state.active < 0 ? (moves[e.key] > 0 ? -1 : 0) : this.state.active;
+      const to = from + moves[e.key];
       this.select(Math.abs(moves[e.key]) === 1 ? (to + n) % n : Math.max(0, Math.min(n - 1, to)));
-    } else if ((e.key === "Enter" || e.key === "Tab") && !e.shiftKey && !e.altKey && !e.metaKey && !e.ctrlKey) {
+    } else if ((e.key === "Enter" || e.key === "Tab") && plain) {
+      // Nothing chosen: the key does what it always does.
+      if (this.state.active < 0) {
+        this.dismiss();
+        return false;
+      }
       this.pick(this.state.active);
     } else if (e.key === "Escape") {
       this.dismiss();
@@ -266,7 +290,8 @@ export class Autocomplete {
     this.popup.replaceChildren(...options);
     this.popup.dataset.kind = context.kind;
     this.popup.hidden = false;
-    this.el.setAttribute("aria-activedescendant", `mh-complete-${active}`);
+    if (active >= 0) this.el.setAttribute("aria-activedescendant", `mh-complete-${active}`);
+    else this.el.removeAttribute("aria-activedescendant");
     this.place();
     options[active]?.scrollIntoView({ block: "nearest" });
   }

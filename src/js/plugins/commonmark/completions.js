@@ -78,7 +78,8 @@ function referenceLabels(ctx) {
     if (node.type === "link_reference_definition" && !seen.has(node.label)) {
       seen.add(node.label);
       const m = ctx.ast.source.slice(node.pos.start.offset, node.pos.end.offset).match(reLabel);
-      const label = m ? m[1].replace(/\s+/g, " ") : node.label;
+      // A label can run over lines; their container markers are not in it.
+      const label = m ? m[1].replace(/\n[ \t>]*/g, " ").replace(/\s+/g, " ") : node.label;
       items.push({ label, detail: node.destination, insert: literal(label) + close });
     }
     for (const child of node.children ?? []) visit(child);

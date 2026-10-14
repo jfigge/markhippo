@@ -52,6 +52,9 @@
  *                               (see highlight/highlight.js)
  *   completions(provider)       autocomplete suggestions: { context, provide }
  *                               (see complete/complete.js)
+ *   theme(palette)              a named colour palette with a light and a
+ *                               dark mode: { id, name, light, dark }
+ *                               (see themes/tokens.js)
  */
 
 // The block types the engine needs to function at all.
@@ -90,6 +93,7 @@ export function createRegistry() {
     languages: new Map(),
     highlighters: new Map(),
     completionProviders: [],
+    themes: new Map(),
   };
   registry.blocks.set("document", DOCUMENT_RULE);
   registry.blocks.set("paragraph", PARAGRAPH_RULE);
@@ -181,6 +185,11 @@ export function pluginApi(registry, plugin) {
 
     highlighter(type, fn) {
       registry.highlighters.set(type, fn);
+    },
+
+    theme(palette) {
+      required(palette, ["id", "name", "light", "dark"], `Theme from ${owner}`);
+      registry.themes.set(palette.id, { ...palette, plugin: owner });
     },
 
     completions(provider) {

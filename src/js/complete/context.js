@@ -39,9 +39,11 @@ import { lineStartAt } from "../highlight/lines.js";
 
 // Quote markers, list markers and indentation at the start of a line.
 const CONTAINERS = String.raw`(?:[ \t]{0,3}(?:>[ \t]?|(?:[-+*]|[0-9]{1,9}[.)])[ \t]+))*[ \t]*`;
+// Only ever used to MATCH (which always succeeds, greedily, in one pass):
+// a test that could fail would backtrack exponentially through the
+// ambiguous spaces of a deeply nested line.
 const reContainers = new RegExp(`^${CONTAINERS}`);
-const reBlockSlash = new RegExp(`^(${CONTAINERS})/([A-Za-z0-9-]*)$`);
-const reBlank = new RegExp(`^${CONTAINERS}$`);
+const reSlashCommand = /^\/([A-Za-z0-9-]*)$/;
 const reInlineSlash = /(?:^|\s)\/([A-Za-z0-9-]*)$/;
 const reFenceInfo = /(?:`{3,}|~{3,})[ \t]*([^\s`]*)$/;
 const reLinkRef = /\]\[([^\][\n]*)$/;
@@ -52,11 +54,13 @@ const VERBATIM = new Set(["code", "html_inline", "html_block"]);
 export function completionContext(ast, text, offset, { explicit = false } = {}) {
   const lineStart = lineStartAt(text, offset);
   const before = text.slice(lineStart, offset);
-  const prefix = continuation(before.match(reContainers)[0]);
+  const lead = before.match(reContainers)[0];
+  const rest = before.slice(lead.length);
+  const prefix = continuation(lead);
   const at = (kind, from, query) => ({ kind, from, query, prefix });
 
   const path = ast ? pathAt(ast, offset) : [];
-  const code = path.find((n) => n.type === "code_block");
+  const code = path.find((n) => n.type === "code_block") ?? openFenceBefore(path[path.length - 1], offset);
   if (code) {
     if (!code.fenced || code.pos.start.offset < lineStart) return null;
     const m = before.match(reFenceInfo);
@@ -66,12 +70,22 @@ export function completionContext(ast, text, offset, { explicit = false } = {}) 
 
   let m = before.match(reLinkRef);
   if (m) return at("link-ref", offset - m[1].length, m[1]);
-  m = before.match(reBlockSlash);
-  if (m) return at("block", lineStart + m[1].length, m[2]);
+  m = rest.match(reSlashCommand);
+  if (m) return at("block", lineStart + lead.length, m[1]);
   m = before.match(reInlineSlash);
   if (m) return at("inline", offset - m[1].length - 1, m[1]);
-  if (explicit) return at(reBlank.test(before) ? "block" : "inline", offset, "");
+  if (explicit) return at(rest === "" ? "block" : "inline", offset, "");
   return null;
+}
+
+// An unclosed fence runs to the end of its container, but its node ends
+// with its last line of content: a cursor on an empty line after it (at the
+// end of the document, say) is still in it.
+function openFenceBefore(container, offset) {
+  const kids = container?.children ?? [];
+  const last = kids[kids.length - 1];
+  if (!last || last.pos.end.offset > offset) return null;
+  return last.type === "code_block" && last.fenced && !last.closed ? last : null;
 }
 
 // The nodes containing `offset`, outermost first. A node ending exactly at

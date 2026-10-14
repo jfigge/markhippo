@@ -12,7 +12,7 @@ plugins, and faster than the debounced re-render.*
 | Mid-line, a `/` that starts a word | typing `/` | inline scaffolding: link, image, bold, italic, inline code, reference link, autolink, line break |
 | A code fence's opening line | typing the fence (```` ``` ````), or right after inserting a code block | languages |
 | After `][` | typing it | the document's reference labels, as written, with their destinations |
-| Anywhere else | Ctrl+Space | blocks on a line with no content yet, inline scaffolding elsewhere |
+| Anywhere else | Ctrl+Space, or Alt+/ (macOS gives Ctrl+Space to input sources) | blocks on a line with no content yet, inline scaffolding elsewhere |
 
 How the popup behaves:
 
@@ -31,7 +31,15 @@ How the popup behaves:
   `[text](url)`), so choosing from the list teaches the syntax.
 - **Placeholders.** Inserted text keeps its first placeholder selected, so
   you can type straight over it (`# Heading`, `[text](https://)`).
-- **Selections.** With text selected, Ctrl+Space wraps it. Choosing Bold
+- **Passive opening.** Opened by itself on a fence or after `][`, the list
+  has nothing chosen until you type a query or press an arrow, so a plain
+  ```` ``` ```` followed by Enter stays a plain fence.
+- **Leaving.** Moving the caret anywhere but where typing left it closes the
+  list. So does replacing the document, or an IME composition, which keeps
+  its own keys.
+- **Selections.** With text selected, Ctrl+Space wraps it. Only suggestions
+  with a placeholder are offered, because anything else would replace the
+  selection. Choosing Bold
   turns `text` into `**text**`. Choosing Link turns it into
   `[text](https://)` with the URL selected.
 - **Containers.** Multi-line suggestions keep the line's containers. A code

@@ -53,11 +53,26 @@ export class EditorView {
     textarea.addEventListener("scroll", () => this.pin());
     // Nor does it scroll the pane to keep the caret in view, so that is done
     // here, from where the coloured copy draws the caret's character.
-    document.addEventListener("selectionchange", () => {
-      if (document.activeElement !== textarea) return;
-      this.revealCaret();
-      this.autocomplete?.caretMoved();
-    });
+    // Browsers differ on where a textarea's selectionchange is fired (the
+    // element, or the document, or neither for arrow keys), so the caret is
+    // also looked at after every key and click; looking twice is harmless.
+    const moved = () => {
+      if (document.activeElement === textarea) this.caretMoved();
+    };
+    textarea.addEventListener("selectionchange", moved);
+    document.addEventListener("selectionchange", moved);
+    for (const type of ["keyup", "mouseup", "click"]) textarea.addEventListener(type, moved);
+  }
+
+  caretMoved() {
+    const { selectionStart, selectionEnd } = this.el;
+    if (this.lastCaret && this.lastCaret[0] === selectionStart && this.lastCaret[1] === selectionEnd && this.lastText === this.value) {
+      return;
+    }
+    this.lastCaret = [selectionStart, selectionEnd];
+    this.lastText = this.value;
+    this.revealCaret();
+    this.autocomplete?.caretMoved();
   }
 
   revealCaret() {
@@ -102,6 +117,7 @@ export class EditorView {
   // Replace the whole text (opening a file, say). Moves the cursor to the
   // top and does NOT fire onChange: the caller knows what it set.
   setValue(text) {
+    this.autocomplete?.close();
     this.el.value = text;
     this.hl.reset(this.el.value);
     this.el.setSelectionRange(0, 0);

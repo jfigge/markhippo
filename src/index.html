@@ -41,6 +41,7 @@
   <symbol id="mh-i-home" viewBox="0 0 16 16"><path d="M2 7.5L8 2.5l6 5M3.5 6.5v7h3.5v-4h2v4h3.5v-7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="mh-i-guide" viewBox="0 0 16 16"><path d="M2 3.5c2-1 4-1 6 .5 2-1.5 4-1.5 6-.5v9c-2-1-4-1-6 .5-2-1.5-4-1.5-6-.5zM8 4v9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
   <symbol id="mh-i-plugin" viewBox="0 0 16 16"><path d="M2.5 5h3V4a1.5 1.5 0 0 1 3 0v1h3v3h-1a1.5 1.5 0 0 0 0 3h1v3h-9z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="mh-i-palette" viewBox="0 0 16 16"><path d="M8 1.75a6.25 6.25 0 1 0 0 12.5c.9 0 1.25-.55 1.25-1.15 0-.75-.6-1.05-.6-1.75 0-.65.5-1.1 1.2-1.1h1.4a3.25 3.25 0 0 0 3.25-3.25C14.5 4.1 11.6 1.75 8 1.75z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="4.75" cy="7.5" r="1" fill="currentColor"/><circle cx="6.5" cy="4.75" r="1" fill="currentColor"/><circle cx="9.75" cy="4.5" r="1" fill="currentColor"/></symbol>
   <symbol id="mh-i-github" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></symbol>
 </svg>
 
@@ -72,7 +73,10 @@
     <a class="mh-btn mh-btn--ghost" href="https://hippoherd.com/" title="Hippo Herd">
       <svg class="mh-icon" aria-hidden="true"><use href="#mh-i-home"/></svg><span>Hippo Herd</span>
     </a>
-    <button type="button" class="mh-btn mh-btn--ghost" id="mh-theme" aria-label="Theme: follow the system">
+    <button type="button" class="mh-btn mh-btn--ghost" id="mh-themes-open" aria-haspopup="dialog" title="Palettes, and your own themes">
+      <svg class="mh-icon" aria-hidden="true"><use href="#mh-i-palette"/></svg><span>Themes</span>
+    </button>
+    <button type="button" class="mh-btn mh-btn--ghost" id="mh-theme" aria-label="Mode: follow the system" title="Light, dark, or follow the system">
       <svg class="mh-icon" aria-hidden="true"><use href="#mh-i-system"/></svg>
       <span class="mh-theme-label">System</span>
     </button>
@@ -111,6 +115,51 @@
   </form>
 </dialog>
 
+<!-- Themes: the palettes, the mode, and the editor for your own
+     (js/theme-dialog.js). -->
+<dialog class="mh-themes" id="mh-themes" aria-labelledby="mh-themes-title">
+  <div class="mh-themes-head">
+    <h2 class="mh-themes-title" id="mh-themes-title">Themes</h2>
+    <fieldset class="mh-segmented" id="mh-mode">
+      <legend class="mh-visually-hidden">Mode</legend>
+      <label><input type="radio" name="mh-mode" value="system"><span>System</span></label>
+      <label><input type="radio" name="mh-mode" value="light"><span>Light</span></label>
+      <label><input type="radio" name="mh-mode" value="dark"><span>Dark</span></label>
+    </fieldset>
+    <form method="dialog" class="mh-themes-done">
+      <button type="submit" class="mh-btn">Done</button>
+    </form>
+  </div>
+  <div class="mh-themes-body">
+    <div class="mh-themes-side">
+      <h3 class="mh-visually-hidden">Palettes</h3>
+      <ul class="mh-palette-list" id="mh-palette-list"></ul>
+      <div class="mh-themes-side-actions">
+        <button type="button" class="mh-btn" data-theme-action="new" title="A new theme, starting from Hippo">New</button>
+        <button type="button" class="mh-btn" data-theme-action="import" title="Add a theme from a file (MarkHippo or Rest Hippo)">Import…</button>
+        <input type="file" id="mh-theme-file" accept=".json,application/json" hidden>
+      </div>
+      <p class="mh-theme-status" id="mh-theme-status" role="status"></p>
+    </div>
+    <section class="mh-theme-editor" aria-label="Colours">
+      <div class="mh-theme-editor-head">
+        <input type="text" class="mh-theme-name" id="mh-theme-name" aria-label="Theme name" maxlength="60" spellcheck="false">
+        <div class="mh-tabs" role="tablist" aria-label="Mode to edit">
+          <button type="button" role="tab" id="mh-theme-tab-light" aria-controls="mh-theme-grid" aria-selected="true" data-variant="light">Light</button>
+          <button type="button" role="tab" id="mh-theme-tab-dark" aria-controls="mh-theme-grid" aria-selected="false" data-variant="dark">Dark</button>
+        </div>
+        <div class="mh-theme-actions">
+          <button type="button" class="mh-btn" data-theme-action="duplicate" title="An editable copy of this theme">Duplicate</button>
+          <button type="button" class="mh-btn" data-theme-action="export" title="Save this theme as a file, to share or keep">Export</button>
+          <button type="button" class="mh-btn mh-btn--danger" data-theme-action="delete">Delete</button>
+        </div>
+      </div>
+      <p class="mh-theme-note" id="mh-theme-note"></p>
+      <div class="mh-theme-grid" id="mh-theme-grid" role="tabpanel" aria-labelledby="mh-theme-tab-light"></div>
+    </section>
+  </div>
+</dialog>
+
 <main class="mh-main" id="mh-main">
   <section class="mh-pane mh-pane--source" id="mh-source-pane" aria-label="Markdown">
     <!-- The textarea edits; the <pre> under it shows the same text,
@@ -123,7 +172,7 @@
       <!-- [html-validate-disable-next prefer-native-element] -->
       <div class="mh-complete" id="mh-complete" role="listbox" aria-label="Suggestions" hidden></div>
     </div>
-    <p class="mh-visually-hidden" id="mh-source-help">Type / at the start of a line for block types, or Control+Space anywhere, for suggestions: arrow keys choose, Enter or Tab inserts. Tab indents. Press Escape, then Tab, to move focus out of the editor.</p>
+    <p class="mh-visually-hidden" id="mh-source-help">Type / at the start of a line for block types, or Control+Space or Alt+Slash anywhere, for suggestions: arrow keys choose, Enter or Tab inserts. Tab indents. Press Escape, then Tab, to move focus out of the editor.</p>
   </section>
   <div class="mh-divider" id="mh-divider" role="separator" aria-orientation="vertical" aria-label="Resize the panes" aria-valuemin="20" aria-valuemax="80" aria-valuenow="50" tabindex="0"></div>
   <section class="mh-pane mh-pane--preview" aria-label="Preview">

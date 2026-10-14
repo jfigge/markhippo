@@ -4,7 +4,8 @@
 `features/markhippo-parser-core.md`. This file records what was built for
 Milestone 1 and the rules later milestones build on. Phase 2 (edit-pane
 highlighting, the code plugin, the plugin list) is in
-`01-highlighting.md`, phase 3 (autocomplete) in `02-autocomplete.md`.*
+`01-highlighting.md`, phase 3 (autocomplete) in `02-autocomplete.md`,
+phase 4 (themes) in `03-themes.md`.*
 
 ## Layout
 
@@ -16,6 +17,8 @@ src/js/parser/            the parser engine        (pure)
 src/js/render/            AST → HTML               (pure)
 src/js/highlight/         AST → edit-pane colours, code tokens (pure)
 src/js/complete/          autocomplete: context, ranking, snippets (pure)
+src/js/themes/            palettes: tokens, Hippo, custom themes (pure)
+src/js/plugins/themes     more palettes: Catppuccin, Grey, High contrast
 src/js/plugins/commonmark CommonMark: parsing, HTML, colouring (pure)
 src/js/plugins/code       syntax colouring for fenced code     (pure)
 src/js/*.js               the page: editor, preview, status bar, app wiring
@@ -128,6 +131,7 @@ export default {
     api.language({ id, name?, aliases?, tokenize(code) });
     api.highlighter(type, (node, h) => { … });
     api.completions({ context, provide(ctx) });
+    api.theme({ id, name, light: { "--bg": "#…", … }, dark: { … } });
   },
 };
 ```
@@ -151,6 +155,8 @@ export default {
 - **Languages** and **highlighters** are described in `01-highlighting.md`.
 - **Completion providers** feed the autocomplete popup; see
   `02-autocomplete.md`.
+- **Themes** are named palettes with a light and a dark mode; see
+  `03-themes.md`.
 
 The core registers only `document`, `paragraph` and text. With no plugins,
 everything is plain paragraphs. CommonMark (`plugins/commonmark/`) is
@@ -159,7 +165,6 @@ checks that, along with a toy third-party plugin.
 
 ## Not yet (later milestones)
 
-- Themes beyond light, dark and system.
 - Synced scroll, outline and minimap. The renderer already emits
   `data-line`.
 - The extension plugins: tables, footnotes, task lists, math and Mermaid.

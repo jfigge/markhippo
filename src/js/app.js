@@ -25,6 +25,9 @@
 import { createMarkHippo } from "./core/host.js";
 import commonmark from "./plugins/commonmark/index.js";
 import code from "./plugins/code/index.js";
+import themesPlugin from "./plugins/themes/index.js";
+import { ThemeDialog } from "./theme-dialog.js";
+import { ThemeManager } from "./theme-manager.js";
 import { HIGHLIGHT_DELAY_MS, RENDER_DELAY_MS, debounce } from "./debounce.js";
 import { Autocomplete } from "./autocomplete.js";
 import { EditorView } from "./editor-view.js";
@@ -35,7 +38,6 @@ import { SAMPLE } from "./sample.js";
 const STORE = {
   document: "markhippo.document",
   filename: "markhippo.filename",
-  theme: "markhippo.theme",
   split: "markhippo.split",
   plugins: "markhippo.plugins",
 };
@@ -62,7 +64,7 @@ const storage = {
 
 // The bundled plugin set, in installation order. The extensions (tables,
 // footnotes, task lists, math, Mermaid) arrive as further plugins here.
-const BUNDLED = [commonmark, code];
+const BUNDLED = [commonmark, code, themesPlugin];
 
 // Plugins the user switched off, by id (required ones cannot be).
 function loadDisabled() {
@@ -155,17 +157,21 @@ async function openFile(file) {
   load(await file.text(), file.name);
 }
 
-function save() {
-  scheduleRender.flush();
-  const blob = new Blob([editor.value], { type: "text/markdown;charset=utf-8" });
+function download(text, name, type) {
+  const blob = new Blob([text], { type: `${type};charset=utf-8` });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = /\.(md|markdown|mdown|mkd|txt)$/i.test(filename) ? filename : `${filename}.md`;
+  a.download = name;
   document.body.append(a);
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function save() {
+  scheduleRender.flush();
+  download(editor.value, /\.(md|markdown|mdown|mkd|txt)$/i.test(filename) ? filename : `${filename}.md`, "text/markdown");
 }
 
 const fileInput = $("mh-file-input");
@@ -261,28 +267,31 @@ divider.addEventListener("keydown", (e) => {
 
 // ── Theme ──────────────────────────────────────────────────────────────────
 
-const THEMES = [
+// The palette (Themes dialog) and the mode (the header button) are separate
+// choices; the palettes come from the Hippo palette, the plugins, and the
+// user (theme-manager.js).
+const themes = new ThemeManager({ storage, registry: () => mh.registry });
+const themeDialog = new ThemeDialog($("mh-themes"), { themes, download });
+
+const MODES = [
   { id: "system", label: "System", icon: "mh-i-system" },
   { id: "light", label: "Light", icon: "mh-i-sun" },
   { id: "dark", label: "Dark", icon: "mh-i-moon" },
 ];
 const themeButton = $("mh-theme");
 
-function showTheme(id) {
-  const theme = THEMES.find((t) => t.id === id) ?? THEMES[0];
-  themeButton.querySelector("use").setAttribute("href", `#${theme.icon}`);
-  themeButton.querySelector(".mh-theme-label").textContent = theme.label;
-  themeButton.setAttribute("aria-label", theme.id === "system" ? "Theme: follow the system" : `Theme: ${theme.label}`);
+function showMode() {
+  const mode = MODES.find((m) => m.id === themes.mode) ?? MODES[0];
+  themeButton.querySelector("use").setAttribute("href", `#${mode.icon}`);
+  themeButton.querySelector(".mh-theme-label").textContent = mode.label;
+  themeButton.setAttribute("aria-label", mode.id === "system" ? "Mode: follow the system" : `Mode: ${mode.label}`);
 }
 
 themeButton.addEventListener("click", () => {
-  const current = document.documentElement.dataset.theme ?? "system";
-  const next = THEMES[(THEMES.findIndex((t) => t.id === current) + 1) % THEMES.length].id;
-  if (next === "system") delete document.documentElement.dataset.theme;
-  else document.documentElement.dataset.theme = next;
-  storage.set(STORE.theme, next);
-  showTheme(next);
+  themes.setMode(MODES[(MODES.findIndex((m) => m.id === themes.mode) + 1) % MODES.length].id);
 });
+themes.onChange(showMode);
+$("mh-themes-open").addEventListener("click", () => themeDialog.open());
 
 // ── Plugins ────────────────────────────────────────────────────────────────
 
@@ -334,6 +343,8 @@ pluginList.addEventListener("change", (e) => {
   storage.set(STORE.plugins, JSON.stringify({ disabled: [...disabled] }));
   mh = createHost();
   rerender();
+  // A palette's plugin may have come or gone.
+  themes.apply();
 });
 
 $("mh-plugins-open").addEventListener("click", () => {
@@ -347,7 +358,7 @@ $("mh-about-open").addEventListener("click", () => $("mh-about").showModal());
 
 // ── Start ──────────────────────────────────────────────────────────────────
 
-showTheme(document.documentElement.dataset.theme ?? "system");
+themes.apply();
 const split = Number(storage.get(STORE.split));
 if (split) setSplit(split);
 $("mh-filename").textContent = filename;

@@ -16,7 +16,10 @@ library:
   everything after it into code.
 - It suggests the syntax where it fits: `/` at the start of a line for
   block types, `/` mid-line for links and emphasis, languages on a code
-  fence, and Ctrl+Space anywhere.
+  fence, and Ctrl+Space (or Alt+/) anywhere.
+
+Themes are palettes with a light and a dark mode — Hippo, Catppuccin, Grey,
+High contrast, or your own, made in the built-in theme editor.
 
 The core is a plugin host. CommonMark itself is a plugin, written against the
 same API anyone else would use, and so is the syntax colouring of fenced code
@@ -31,7 +34,8 @@ in some twenty languages.
   [`docs/features/00-overview.md`](docs/features/00-overview.md); the
   edit-pane highlighting and the code plugin are in
   [`docs/features/01-highlighting.md`](docs/features/01-highlighting.md),
-  autocomplete in [`docs/features/02-autocomplete.md`](docs/features/02-autocomplete.md)
+  autocomplete in [`docs/features/02-autocomplete.md`](docs/features/02-autocomplete.md),
+  themes in [`docs/features/03-themes.md`](docs/features/03-themes.md)
 
 ## Develop
 
