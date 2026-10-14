@@ -1,0 +1,28 @@
+{
+  "name": "markhippo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A markdown viewer and editor built on its own parser.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "author": "Jason Figge",
+  "homepage": "https://hippoherd.com/markhippo/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jfigge/markhippo.git"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "lint": "eslint src/js test scripts",
+    "validate": "html-validate src/index.html src/docs/index.html"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
+    "html-validate": "~10.11.3"
+  }
+}
