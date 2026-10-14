@@ -37,9 +37,12 @@
  *   sourceLines  put data-line="N" (the 1-based source line) on block
  *                elements — the hook synced scroll will use. Default false.
  *   softbreak    what a soft line break renders as. Default "\n".
+ *   headingIds   give headings ids from their text (render/slug.js), so
+ *                #links and the outline can reach them. Default false.
  */
 
 import { codeToHtml, languageFor, tokenizeCode } from "../highlight/code.js";
+import { slugger } from "./slug.js";
 
 const reUnsafeProtocol = /^(?:javascript|vbscript|file|data):/i;
 const reSafeDataProtocol = /^data:image\/(?:png|gif|jpeg|webp)/i;
@@ -76,7 +79,7 @@ const CORE_RENDERERS = {
 export class HtmlRenderer {
   constructor(registry, options = {}) {
     this.registry = registry;
-    this.options = { html: true, safe: false, sourceLines: false, softbreak: "\n", ...options };
+    this.options = { html: true, safe: false, sourceLines: false, softbreak: "\n", headingIds: false, ...options };
   }
 
   render(ast) {
@@ -84,6 +87,7 @@ export class HtmlRenderer {
     this.lastOut = "\n";
     this.disableTags = 0;
     this.stack = [];
+    this.slug = slugger();
     this.node(ast);
     return this.buffer;
   }

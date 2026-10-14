@@ -18,6 +18,8 @@ library:
   block types, `/` mid-line for links and emphasis, languages on a code
   fence, and Ctrl+Space (or Alt+/) anywhere.
 
+An outline, a minimap and synced scrolling come from the same tree.
+
 Themes are palettes with a light and a dark mode — Hippo, Catppuccin, Grey,
 High contrast, or your own, made in the built-in theme editor.
 
@@ -35,7 +37,8 @@ in some twenty languages.
   edit-pane highlighting and the code plugin are in
   [`docs/features/01-highlighting.md`](docs/features/01-highlighting.md),
   autocomplete in [`docs/features/02-autocomplete.md`](docs/features/02-autocomplete.md),
-  themes in [`docs/features/03-themes.md`](docs/features/03-themes.md)
+  themes in [`docs/features/03-themes.md`](docs/features/03-themes.md),
+  navigation in [`docs/features/04-navigation.md`](docs/features/04-navigation.md)
 
 ## Develop
 

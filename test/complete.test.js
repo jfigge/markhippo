@@ -59,7 +59,9 @@ test("a / starting a word mid-line asks for inline scaffolding", () => {
 
 test("a fence's opening line asks for its language — and only that line", () => {
   assert.deepEqual(contextAt("```py|"), { kind: "fence-info", from: 3, query: "py", prefix: "" });
-  assert.deepEqual(contextAt("> ~~~ |"), { kind: "fence-info", from: 6, query: "", prefix: "> " });
+  // From just after the fence: spaces before the language don't move it.
+  assert.deepEqual(contextAt("> ~~~ |"), { kind: "fence-info", from: 5, query: "", prefix: "> " });
+  assert.deepEqual(contextAt("```  py|"), { kind: "fence-info", from: 3, query: "py", prefix: "" });
   assert.equal(contextAt("```js\n/|\n```"), null);
   assert.equal(contextAt("```js\nx\n```\n|", { explicit: true })?.kind, "block");
 });

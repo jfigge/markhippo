@@ -22,6 +22,8 @@
  * the syntax.
  */
 
+import { outline } from "../../nav/outline.js";
+
 const heading = (level) => ({
   label: `Heading ${level}`,
   detail: level === 1 ? "Title" : level === 2 ? "Section" : level === 3 ? "Subsection" : "",
@@ -88,8 +90,20 @@ function referenceLabels(ctx) {
   return items;
 }
 
+// The document's headings, for "](#": their ids, as the preview gives them.
+function headingAnchors(ctx) {
+  const close = ctx.text[ctx.offset] === ")" ? "" : ")";
+  return outline(ctx.ast).map((h) => ({
+    label: h.id,
+    detail: `${"#".repeat(h.level)} ${h.text}`,
+    keywords: [h.text],
+    insert: literal(h.id) + close,
+  }));
+}
+
 export const providers = [
   { context: "block", provide: () => BLOCK_ITEMS },
   { context: "inline", provide: () => INLINE_ITEMS },
   { context: "link-ref", provide: referenceLabels },
+  { context: "link-anchor", provide: headingAnchors },
 ];

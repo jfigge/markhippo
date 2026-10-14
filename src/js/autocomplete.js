@@ -38,13 +38,14 @@ import { lineStartAt } from "./highlight/lines.js";
 const TYPED = {
   block: /^\/?([A-Za-z0-9-]*)$/,
   inline: /^\/?([A-Za-z0-9-]*)$/,
-  "fence-info": /^([^\s`]*)$/,
+  "fence-info": /^[ \t]*([^\s`]*)$/,
   "link-ref": /^([^\]\n]*)$/,
+  "link-anchor": /^([^)\s]*)$/,
 };
 
 // A cheap look at the line before asking for a parse: could a context
 // start here at all?
-const reMaybe = /(?:^|\s|>)\/[A-Za-z0-9-]*$|(?:`{3,}|~{3,})[ \t]*[^\s`]*$|\]\[[^\]\n]*$/;
+const reMaybe = /(?:^|\s|>)\/[A-Za-z0-9-]*$|(?:`{3,}|~{3,})[ \t]*[^\s`]*$|\]\[[^\]\n]*$|\]\(#[^)\s]*$/;
 
 const MAX_ITEMS = 50;
 

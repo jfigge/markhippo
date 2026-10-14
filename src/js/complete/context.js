@@ -29,6 +29,7 @@
  *               there: inline scaffolding — links, images, emphasis…
  *   fence-info  the info string of a code fence's opening line: languages
  *   link-ref    after "][": the document's link reference labels
+ *   link-anchor after "](#": the document's headings, by their ids
  *
  * and the answer is { kind, from, query, prefix }: the suggestion replaces
  * text[from, cursor), `query` is what has been typed of it, and `prefix` is
@@ -45,8 +46,9 @@ const CONTAINERS = String.raw`(?:[ \t]{0,3}(?:>[ \t]?|(?:[-+*]|[0-9]{1,9}[.)])[ 
 const reContainers = new RegExp(`^${CONTAINERS}`);
 const reSlashCommand = /^\/([A-Za-z0-9-]*)$/;
 const reInlineSlash = /(?:^|\s)\/([A-Za-z0-9-]*)$/;
-const reFenceInfo = /(?:`{3,}|~{3,})[ \t]*([^\s`]*)$/;
+const reFenceInfo = /(?:`{3,}|~{3,})([ \t]*)([^\s`]*)$/;
 const reLinkRef = /\]\[([^\][\n]*)$/;
+const reLinkAnchor = /\]\(#([^)\s]*)$/;
 
 // Inline nodes inside which nothing is suggested.
 const VERBATIM = new Set(["code", "html_inline", "html_block"]);
@@ -63,13 +65,17 @@ export function completionContext(ast, text, offset, { explicit = false } = {}) 
   const code = path.find((n) => n.type === "code_block") ?? openFenceBefore(path[path.length - 1], offset);
   if (code) {
     if (!code.fenced || code.pos.start.offset < lineStart) return null;
+    // From just after the fence, so spaces typed before the language are
+    // part of the suggestion (and a dismissed one stays dismissed).
     const m = before.match(reFenceInfo);
-    return m ? at("fence-info", offset - m[1].length, m[1]) : null;
+    return m ? at("fence-info", offset - m[1].length - m[2].length, m[2]) : null;
   }
   if (path.some((n) => VERBATIM.has(n.type))) return null;
 
   let m = before.match(reLinkRef);
   if (m) return at("link-ref", offset - m[1].length, m[1]);
+  m = before.match(reLinkAnchor);
+  if (m) return at("link-anchor", offset - m[1].length, m[1]);
   m = rest.match(reSlashCommand);
   if (m) return at("block", lineStart + lead.length, m[1]);
   m = before.match(reInlineSlash);

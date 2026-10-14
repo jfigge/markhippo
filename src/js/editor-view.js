@@ -75,6 +75,47 @@ export class EditorView {
     this.autocomplete?.caretMoved();
   }
 
+  // ── Lines and positions (for the outline, the minimap, synced scroll) ──
+
+  // The top of 1-based source line `line`, in the scroller's content.
+  lineTop(line) {
+    const lines = this.hl.pre.children;
+    const el = lines[Math.max(0, Math.min(lines.length - 1, line - 1))];
+    return el ? el.offsetTop : 0;
+  }
+
+  // The 1-based source line at content position `y`.
+  lineAt(y) {
+    const lines = this.hl.pre.children;
+    let lo = 0;
+    let hi = lines.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (lines[mid].offsetTop <= y) lo = mid;
+      else hi = mid - 1;
+    }
+    return lo + 1;
+  }
+
+  lineCount() {
+    return this.hl.pre.children.length;
+  }
+
+  // Put the caret at the start of `line` and scroll it near the top.
+  goToLine(line) {
+    const value = this.value;
+    let at = 0;
+    for (let k = 1; k < line; k++) {
+      const nl = value.indexOf("\n", at);
+      if (nl === -1) break;
+      at = nl + 1;
+    }
+    this.el.focus({ preventScroll: true });
+    this.el.setSelectionRange(at, at);
+    this.scroller.scrollTop = Math.max(0, this.lineTop(line) - 24);
+    this.reportCursor();
+  }
+
   revealCaret() {
     const { selectionStart, selectionEnd, selectionDirection } = this.el;
     if (this.hl.text !== this.value) return;

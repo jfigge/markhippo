@@ -44,7 +44,7 @@ const CATPPUCCIN = {
     "--selection": "#dcd0f5",
     "--quote-bar": "#c5a8f2",
     "--error": "#d20f39",
-    "--md-code": "#13787d",
+    "--md-code": "#127277",
     "--tk-keyword": "#8538ea",
     "--tk-string": "#2f7620",
     "--tk-number": "#af4508",

@@ -34,6 +34,7 @@
     <ol>
       <li><a href="#editing">Writing and the preview</a></li>
       <li><a href="#suggest">Suggestions as you type</a></li>
+      <li><a href="#navigate">Finding your way around</a></li>
       <li><a href="#themes">Themes</a></li>
       <li><a href="#files">Opening and saving</a></li>
       <li><a href="#keys">Keyboard</a></li>
@@ -63,6 +64,15 @@
   </ul>
   <p>Keep typing to narrow the list: <kbd>/h2</kbd>, <kbd>/quote</kbd> or <kbd>/cb</kbd> (the initials of Code block) all work. Use <kbd>↑</kbd> and <kbd>↓</kbd> to choose, <kbd>Enter</kbd> or <kbd>Tab</kbd> to insert, and <kbd>Esc</kbd> to close the list. Each suggestion shows the markdown it stands for, so the list doubles as a cheat sheet. After inserting, the part you'll want to change, such as a heading's text or a link's address, is selected, ready to type over.</p>
   <p>Nothing is suggested inside code, and a <kbd>/</kbd> in the middle of a word or a web address never opens the list. When the list opens by itself on a code fence or after <code>][</code>, nothing in it is chosen until you type or press an arrow key, so <code>```</code> followed by <kbd>Enter</kbd> is still just a new line.</p>
+
+  <h2 id="navigate">Finding your way around</h2>
+  <p>Three switches at the right of the status bar, at the bottom of the window:</p>
+  <ul>
+    <li><strong>Sync scroll</strong> (on to begin with) keeps the editor and the preview at the same place: scroll either one and the other follows, heading for heading.</li>
+    <li><strong>Outline</strong> shows the document's headings in a panel on the left. Choose one to jump there in both panes. The section you're looking at is highlighted.</li>
+    <li><strong>Minimap</strong> shows the whole document in miniature beside the editor, in the editor's colours, with the part in view marked. Click or drag on it to go somewhere.</li>
+  </ul>
+  <p>Headings get ids in the preview, so you can link to them: <code>[see below](#getting-started)</code> for a heading "Getting started". Type <code>](#</code> and MarkHippo suggests the headings your document has.</p>
 
   <h2 id="themes">Themes</h2>
   <p><strong>Themes</strong> in the header opens the palettes. Each palette has a light and a dark version, and the mode (System, Light or Dark, in the dialog or the header button) picks between them. MarkHippo comes with Hippo, Catppuccin, Grey (the same greys as Rest Hippo) and High contrast. Choosing one applies it straight away.</p>
@@ -120,7 +130,6 @@
 
   <h2 id="coming">Coming next</h2>
   <ul>
-    <li>An outline, a minimap, and scrolling that keeps the source and the preview in step.</li>
     <li>Tables, footnotes, task lists, math and Mermaid diagrams, each with its own suggestions.</li>
     <li>Pasting and dropping images, and export to HTML, RTF and plain text.</li>
     <li>A desktop app that you can extend with your own plugins.</li>

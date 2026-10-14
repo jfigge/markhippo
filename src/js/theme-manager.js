@@ -144,10 +144,10 @@ export class ThemeManager {
     this.root.style.colorScheme = mode;
     // The stylesheets' own light/dark defaults follow too.
     this.root.dataset.theme = mode;
-    if (!this.preview) {
-      const active = this.current();
-      this.storage.set(KEYS.cache, JSON.stringify({ light: active.light, dark: active.dark }));
-    }
+    // The chosen palette (not a preview) for the next first paint — written
+    // during previews too, since edits happen then.
+    const active = this.current();
+    this.storage.set(KEYS.cache, JSON.stringify({ light: active.light, dark: active.dark }));
     for (const fn of this.listeners) fn();
   }
 }

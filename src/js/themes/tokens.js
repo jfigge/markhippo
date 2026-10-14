@@ -33,10 +33,10 @@ export const TOKENS = [
     tokens: [
       ["--bg", "Background"],
       ["--mantle", "Header and bars"],
-      ["--crust", "Deepest background"],
+      ["--crust", "Deepest background: minimap"],
       ["--surface-0", "Lines and hover"],
       ["--surface-1", "Borders"],
-      ["--surface-2", "Strong borders"],
+      ["--surface-2", "Strong borders: hover"],
       ["--code-bg", "Code background"],
     ],
   },
@@ -79,8 +79,11 @@ export const TOKENS = [
 export const TOKEN_NAMES = TOKENS.flatMap((g) => g.tokens.map(([name]) => name));
 const KNOWN = new Set(TOKEN_NAMES);
 
-// Text tokens and what they are read against: the editor shows the
-// contrast of each, and every built-in palette keeps them at WCAG AA.
+// Text tokens and what they are read against: the theme editor shows the
+// worst contrast of each, and every built-in palette keeps them all at
+// WCAG AA. Code colours are read on the preview's code background and, in
+// the edit pane, on the page background.
+const CODE_TOKENS = TOKEN_NAMES.filter((t) => t.startsWith("--tk-"));
 export const CONTRAST_PAIRS = [
   ["--text", "--bg"],
   ["--subtext", "--bg"],
@@ -88,7 +91,11 @@ export const CONTRAST_PAIRS = [
   ["--accent", "--bg"],
   ["--error", "--bg"],
   ["--md-code", "--bg"],
-  ...TOKEN_NAMES.filter((t) => t.startsWith("--tk-")).map((t) => [t, "--code-bg"]),
+  ["--md-code", "--code-bg"],
+  ...CODE_TOKENS.flatMap((t) => [
+    [t, "--code-bg"],
+    [t, "--bg"],
+  ]),
 ];
 
 const reHex = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i;
@@ -115,6 +122,12 @@ export function contrast(a, b) {
   const x = luminance(a);
   const y = luminance(b);
   return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+}
+
+// How many of `vars`' values are known tokens with valid colours.
+export function validColours(vars) {
+  if (!vars || typeof vars !== "object") return 0;
+  return TOKEN_NAMES.filter((name) => normalizeHex(vars[name]) !== null).length;
 }
 
 // One mode's colours made whole and safe: only known tokens, only valid

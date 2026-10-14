@@ -165,6 +165,7 @@ body {
 }
 
 .mh-btn:hover {
+  border-color: var(--surface-2);
   background: var(--surface-0);
 }
 
@@ -245,6 +246,12 @@ body {
 /* ── Split pane ─────────────────────────────────────────────────────────── */
 
 .mh-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.mh-panes {
   --split: 50%;
   display: grid;
   flex: 1;
@@ -264,8 +271,31 @@ body {
 }
 
 .mh-pane--source {
-  overflow: auto;
+  display: flex;
   background: var(--bg);
+}
+
+.mh-source-scroll {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  contain: strict;
+}
+
+/* ── Minimap ── */
+
+.mh-minimap {
+  flex: none;
+  width: 72px;
+  height: 100%;
+  border-left: 1px solid var(--surface-0);
+  background: var(--crust);
+  cursor: pointer;
+  touch-action: none;
+}
+
+.mh-minimap[hidden] {
+  display: none;
 }
 
 /* The editor: a <textarea> exactly over a coloured <pre> of the same text
@@ -346,7 +376,7 @@ body {
 
 /* Narrow screens: the panes stack, preview under the source. */
 @media (max-width: 700px) {
-  .mh-main {
+  .mh-panes {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr) 0 minmax(0, 1fr);
   }
@@ -401,6 +431,119 @@ body {
 
 .mh-status-cursor {
   margin-left: auto;
+}
+
+.mh-view {
+  display: flex;
+  gap: 2px;
+  margin: -3px -8px -3px 0;
+}
+
+.mh-toggle {
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--subtext);
+  font: inherit;
+  cursor: pointer;
+}
+
+.mh-toggle:hover {
+  background: var(--surface-0);
+  color: var(--text);
+}
+
+.mh-toggle[aria-pressed="true"] {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Outline ────────────────────────────────────────────────────────────── */
+
+.mh-outline {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: 240px;
+  min-height: 0;
+  border-right: 1px solid var(--surface-0);
+  background: var(--mantle);
+}
+
+.mh-outline[hidden] {
+  display: none;
+}
+
+.mh-outline-title {
+  margin: 0;
+  padding: 10px 14px 6px;
+  color: var(--subtext);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mh-outline-list {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0 6px 12px;
+  list-style: none;
+}
+
+.mh-outline-item {
+  display: block;
+  width: 100%;
+  padding: 3px 8px 3px calc(8px + var(--depth, 0) * 12px);
+  overflow: hidden;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: var(--subtext);
+  font: inherit;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.mh-outline-item:hover {
+  background: var(--surface-0);
+  color: var(--text);
+}
+
+.mh-outline-item--h1 {
+  color: var(--text);
+  font-weight: 650;
+}
+
+.mh-outline-item[aria-current="location"] {
+  background: var(--selection);
+  color: var(--text);
+}
+
+.mh-outline-empty {
+  margin: 0;
+  padding: 4px 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.mh-outline-empty[hidden] {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .mh-outline {
+    width: 180px;
+  }
+}
+
+@media (max-width: 700px) {
+  .mh-outline {
+    display: none;
+  }
 }
 
 /* ── About ──────────────────────────────────────────────────────────────── */

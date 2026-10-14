@@ -19,6 +19,8 @@
  * renderer's output exactly (see render/html.js).
  */
 
+import { plainText } from "../../render/slug.js";
+
 function block(tagName) {
   return (node, r) => {
     r.cr();
@@ -77,8 +79,10 @@ export const renderers = {
   },
 
   heading(node, r) {
+    const attrs = r.attrs(node);
+    if (r.options.headingIds) attrs.push(["id", r.esc(r.slug(plainText(node)))]);
     r.cr();
-    r.tag("h" + node.level, r.attrs(node));
+    r.tag("h" + node.level, attrs);
     r.children(node);
     r.tag("/h" + node.level);
     r.cr();

@@ -32,7 +32,7 @@
  */
 
 import { HIPPO } from "./palettes.js";
-import { cleanVariant } from "./tokens.js";
+import { cleanVariant, validColours } from "./tokens.js";
 
 export const CUSTOM = "custom-";
 const MAX_NAME = 60;
@@ -97,15 +97,19 @@ export function parseThemeFile(text) {
     throw new Error("This file is not JSON, so it can't be a theme.");
   }
   if (!data || typeof data !== "object") throw new Error("This file is not a theme.");
+  const none = new Error("This file has no colours MarkHippo knows in it.");
   if (data.light || data.dark) {
+    if (validColours(data.light) + validColours(data.dark) === 0) throw none;
     return cleanPalette({ name: data.name, light: data.light ?? data.dark, dark: data.dark ?? data.light }, null);
   }
   if (data.vars && typeof data.vars === "object") {
     const mode = data.colorScheme === "light" ? "light" : "dark";
+    const known = Object.fromEntries(Object.entries(REST_HIPPO).map(([ours, theirs]) => [ours, data.vars[theirs]]));
+    if (validColours(known) === 0) throw none;
     const vars = fromRestHippo(data.vars, mode);
     return cleanPalette({ name: data.name ?? "Rest Hippo theme", light: vars, dark: vars }, null);
   }
-  throw new Error("This file has no theme colours in it.");
+  throw none;
 }
 
 // Rest Hippo's tokens → MarkHippo's. Its syntax colours are its semantic

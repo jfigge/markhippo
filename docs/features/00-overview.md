@@ -5,7 +5,8 @@
 Milestone 1 and the rules later milestones build on. Phase 2 (edit-pane
 highlighting, the code plugin, the plugin list) is in
 `01-highlighting.md`, phase 3 (autocomplete) in `02-autocomplete.md`,
-phase 4 (themes) in `03-themes.md`.*
+phase 4 (themes) in `03-themes.md`, phase 5 (synced scroll, outline,
+minimap) in `04-navigation.md`.*
 
 ## Layout
 
@@ -18,6 +19,7 @@ src/js/render/            AST → HTML               (pure)
 src/js/highlight/         AST → edit-pane colours, code tokens (pure)
 src/js/complete/          autocomplete: context, ranking, snippets (pure)
 src/js/themes/            palettes: tokens, Hippo, custom themes (pure)
+src/js/nav/               outline, scroll mapping (pure)
 src/js/plugins/themes     more palettes: Catppuccin, Grey, High contrast
 src/js/plugins/commonmark CommonMark: parsing, HTML, colouring (pure)
 src/js/plugins/code       syntax colouring for fenced code     (pure)
@@ -165,8 +167,6 @@ checks that, along with a toy third-party plugin.
 
 ## Not yet (later milestones)
 
-- Synced scroll, outline and minimap. The renderer already emits
-  `data-line`.
 - The extension plugins: tables, footnotes, task lists, math and Mermaid.
 - Images and export.
 - The Electron shell.

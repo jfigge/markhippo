@@ -28,6 +28,10 @@ import code from "./plugins/code/index.js";
 import themesPlugin from "./plugins/themes/index.js";
 import { ThemeDialog } from "./theme-dialog.js";
 import { ThemeManager } from "./theme-manager.js";
+import { Minimap } from "./minimap.js";
+import { OutlineView } from "./outline-view.js";
+import { ScrollSync } from "./scroll-sync.js";
+import { outline, sectionAt } from "./nav/outline.js";
 import { HIGHLIGHT_DELAY_MS, RENDER_DELAY_MS, debounce } from "./debounce.js";
 import { Autocomplete } from "./autocomplete.js";
 import { EditorView } from "./editor-view.js";
@@ -40,6 +44,7 @@ const STORE = {
   filename: "markhippo.filename",
   split: "markhippo.split",
   plugins: "markhippo.plugins",
+  view: "markhippo.view",
 };
 
 const $ = (id) => document.getElementById(id);
@@ -79,7 +84,7 @@ let disabled = loadDisabled();
 const createHost = () => createMarkHippo({ plugins: BUNDLED.filter((p) => p.required || !disabled.has(p.id)) });
 let mh = createHost();
 
-const RENDER_OPTIONS = { html: true, safe: true, sourceLines: true };
+const RENDER_OPTIONS = { html: true, safe: true, sourceLines: true, headingIds: true };
 
 // The last parse, and the text it was of.
 let ast = null;
@@ -90,7 +95,7 @@ const status = new StatusBar({ parse: $("mh-status-parse"), doc: $("mh-status-do
 const preview = new PreviewView($("mh-preview"), document.querySelector(".mh-pane--preview"));
 const editor = new EditorView($("mh-source"), {
   highlight: $("mh-highlight"),
-  scroller: $("mh-source-pane"),
+  scroller: $("mh-source-scroll"),
   onChange: () => {
     scheduleParse();
     scheduleRender();
@@ -125,12 +130,75 @@ function parse() {
   parsedText = text;
   status.parsed(stats, performance.now() - t0, ast);
   storage.set(STORE.document, text);
+  // The navigation trio reads the same tree.
+  headings = outline(ast);
+  outlineView.update(headings);
+  minimap.invalidate();
+  sync.invalidate();
+  showPlace();
 }
 
 function render() {
   scheduleParse.cancel();
   parse();
   preview.update(mh.render(ast, RENDER_OPTIONS));
+  sync.invalidate();
+}
+
+// ── Navigation: outline, minimap, synced scroll ────────────────────────────
+
+let headings = [];
+const outlineView = new OutlineView({
+  panel: $("mh-outline"),
+  list: $("mh-outline-list"),
+  empty: $("mh-outline-empty"),
+  onJump: (heading) => {
+    editor.goToLine(heading.line);
+    sync.previewToLine(heading.line);
+  },
+});
+const minimap = new Minimap($("mh-minimap"), { editor });
+const sync = new ScrollSync({
+  editor,
+  preview: document.querySelector(".mh-pane--preview"),
+  content: $("mh-preview"),
+  onScroll: () => {
+    minimap.schedule();
+    showPlace();
+  },
+});
+
+// The outline marks the section at the top of the editor — just below the
+// very top, where a jump puts the heading it jumped to.
+function showPlace() {
+  const line = editor.lineAt(editor.scroller.scrollTop + 40);
+  outlineView.setCurrent(sectionAt(headings, line));
+}
+
+const VIEW = { outline: false, minimap: false, sync: true };
+function loadView() {
+  try {
+    return { ...VIEW, ...JSON.parse(storage.get(STORE.view) ?? "{}") };
+  } catch {
+    return { ...VIEW };
+  }
+}
+const view = loadView();
+const toggles = { outline: $("mh-view-outline"), minimap: $("mh-view-minimap"), sync: $("mh-view-sync") };
+
+function showView() {
+  outlineView.show(view.outline);
+  minimap.show(view.minimap);
+  sync.setEnabled(view.sync);
+  for (const [name, button] of Object.entries(toggles)) button.setAttribute("aria-pressed", String(Boolean(view[name])));
+}
+
+for (const [name, button] of Object.entries(toggles)) {
+  button.addEventListener("click", () => {
+    view[name] = !view[name];
+    storage.set(STORE.view, JSON.stringify(view));
+    showView();
+  });
 }
 
 // Start again from a full parse — a new document, or a new set of plugins.
@@ -234,12 +302,12 @@ document.addEventListener("drop", (e) => {
 
 // ── Split pane ─────────────────────────────────────────────────────────────
 
-const main = $("mh-main");
+const panes = $("mh-panes");
 const divider = $("mh-divider");
 
 function setSplit(percent) {
   const p = Math.min(80, Math.max(20, percent));
-  main.style.setProperty("--split", `${p}%`);
+  panes.style.setProperty("--split", `${p}%`);
   divider.setAttribute("aria-valuenow", String(Math.round(p)));
   storage.set(STORE.split, String(p));
 }
@@ -250,7 +318,7 @@ divider.addEventListener("pointerdown", (e) => {
 });
 divider.addEventListener("pointermove", (e) => {
   if (!divider.hasPointerCapture(e.pointerId)) return;
-  const rect = main.getBoundingClientRect();
+  const rect = panes.getBoundingClientRect();
   setSplit(((e.clientX - rect.left) / rect.width) * 100);
 });
 divider.addEventListener("pointerup", (e) => {
@@ -290,7 +358,10 @@ function showMode() {
 themeButton.addEventListener("click", () => {
   themes.setMode(MODES[(MODES.findIndex((m) => m.id === themes.mode) + 1) % MODES.length].id);
 });
-themes.onChange(showMode);
+themes.onChange(() => {
+  showMode();
+  minimap.invalidate();
+});
 $("mh-themes-open").addEventListener("click", () => themeDialog.open());
 
 // ── Plugins ────────────────────────────────────────────────────────────────
@@ -358,6 +429,7 @@ $("mh-about-open").addEventListener("click", () => $("mh-about").showModal());
 
 // ── Start ──────────────────────────────────────────────────────────────────
 
+showView();
 themes.apply();
 const split = Number(storage.get(STORE.split));
 if (split) setSplit(split);

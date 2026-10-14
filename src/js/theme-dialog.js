@@ -32,7 +32,9 @@ import { CONTRAST_PAIRS, TOKENS, contrast, normalizeHex } from "./themes/tokens.
 import { cleanPalette, newId, parseThemeFile, themeFile, themeFileName } from "./themes/store.js";
 
 const SWATCHES = ["--bg", "--text", "--accent", "--tk-keyword", "--tk-string"];
-const AGAINST = new Map(CONTRAST_PAIRS);
+// Each text token → the backgrounds it is read on.
+const AGAINST = new Map();
+for (const [fg, bg] of CONTRAST_PAIRS) AGAINST.set(fg, [...(AGAINST.get(fg) ?? []), bg]);
 const LABELS = new Map(TOKENS.flatMap((g) => g.tokens));
 
 export class ThemeDialog {
@@ -56,6 +58,17 @@ export class ThemeDialog {
       if (button) this.choose(button.dataset.palette);
     });
     for (const tab of this.tabs) tab.addEventListener("click", () => this.showVariant(tab.dataset.variant));
+    // The ARIA tabs pattern: arrows (and Home/End) move between the tabs.
+    dialog.querySelector("[role=tablist]").addEventListener("keydown", (e) => {
+      const i = this.tabs.indexOf(e.target);
+      if (i === -1) return;
+      const n = this.tabs.length;
+      const to = { ArrowRight: (i + 1) % n, ArrowLeft: (i + n - 1) % n, Home: 0, End: n - 1 }[e.key];
+      if (to === undefined) return;
+      e.preventDefault();
+      this.showVariant(this.tabs[to].dataset.variant);
+      this.tabs[to].focus();
+    });
     dialog.querySelector("#mh-mode").addEventListener("change", (e) => {
       themes.setMode(e.target.value);
       this.showVariant(themes.resolvedMode());
@@ -71,16 +84,29 @@ export class ThemeDialog {
       themes.updateCustom(this.palette().id, (p) => (p.name = name));
       this.renderList();
     });
+    // Left empty, the name goes back to what it is.
+    this.name.addEventListener("change", () => {
+      if (!this.name.value.trim()) this.name.value = this.palette().name;
+    });
     this.grid.addEventListener("input", (e) => this.edit(e.target));
     this.grid.addEventListener("change", (e) => {
-      // A hex field left half-typed shows the colour again.
-      if (e.target.classList.contains("mh-color-hex")) this.renderGrid();
+      // A hex field left half-typed (or as #abc) shows the colour as it is.
+      const input = e.target;
+      if (!input.classList.contains("mh-color-hex")) return;
+      const value = this.palette()[this.variant][input.dataset.token];
+      if (input.value !== value) input.value = value;
     });
     this.file.addEventListener("change", () => this.importFile());
-    dialog.addEventListener("close", () => {
+    // Closing puts the user's own mode back. The close event comes a task
+    // later (and later still in a background tab), so Escape and Done
+    // restore it at once as well.
+    const finish = () => {
       themes.setPreview(null);
       this.resetDelete();
-    });
+    };
+    dialog.addEventListener("cancel", finish);
+    dialog.querySelector(".mh-themes-done").addEventListener("submit", finish);
+    dialog.addEventListener("close", finish);
   }
 
   open() {
@@ -104,6 +130,13 @@ export class ThemeDialog {
     this.themes.choose(id);
     this.resetDelete();
     this.render();
+    this.focusPalette();
+  }
+
+  // The list is rebuilt on every change; keep the focus on the chosen one
+  // (and so let a screen reader hear that it is now pressed).
+  focusPalette() {
+    this.list.querySelector(`[data-palette="${CSS.escape(this.palette().id)}"]`)?.focus();
   }
 
   showVariant(variant) {
@@ -218,8 +251,11 @@ export class ThemeDialog {
     const badge = document.createElement("span");
     badge.className = "mh-contrast";
     badge.dataset.contrast = token;
-    const against = AGAINST.get(token);
-    if (!against) return badge;
+    const backgrounds = AGAINST.get(token);
+    if (!backgrounds) return badge;
+    // The worst of the backgrounds it is read on.
+    let against = backgrounds[0];
+    for (const bg of backgrounds) if (contrast(vars[token], vars[bg]) < contrast(vars[token], vars[against])) against = bg;
     const ratio = contrast(vars[token], vars[against]);
     badge.textContent = `${ratio.toFixed(1)}:1`;
     badge.classList.add(ratio >= 4.5 ? "mh-contrast--good" : ratio >= 3 ? "mh-contrast--fair" : "mh-contrast--poor");
@@ -259,6 +295,7 @@ export class ThemeDialog {
   }
 
   add(palette) {
+    this.resetDelete();
     this.themes.addCustom(palette);
     this.render();
     this.name.focus();
@@ -278,6 +315,7 @@ export class ThemeDialog {
     this.resetDelete();
     this.themes.deleteCustom(this.palette().id);
     this.render();
+    this.focusPalette();
     this.say(`Deleted “${name}”.`);
   }
 
@@ -299,8 +337,10 @@ export class ThemeDialog {
     if (!file) return;
     try {
       const palette = parseThemeFile(await file.text());
+      this.resetDelete();
       this.themes.addCustom(palette);
       this.render();
+      this.focusPalette();
       this.say(`Imported “${palette.name}”.`);
     } catch (err) {
       this.say(err.message);

@@ -122,6 +122,14 @@ test("theme files: export, import, and Rest Hippo's format", () => {
   assert.equal(rest.light["--accent"], HIPPO.light["--accent"]);
 
   assert.throws(() => parseThemeFile("{"), /not JSON/);
-  assert.throws(() => parseThemeFile("[]"), /no theme colours/);
+  assert.throws(() => parseThemeFile("[]"), /no colours/);
+  assert.throws(() => parseThemeFile('{"light": 1}'), /no colours/);
+  assert.throws(() => parseThemeFile('{"light": {"--bg": "red"}}'), /no colours/);
+  assert.throws(() => parseThemeFile('{"vars": {"--color-nope": "#000000"}}'), /no colours/);
   assert.throws(() => parseThemeFile('"x"'), /not a theme/);
+});
+
+test("every token is used by the stylesheets, so every colour in the editor does something", () => {
+  const css = ["app.css", "preview.css", "syntax.css", "guide.css"].map((f) => readFileSync(new URL(`../src/css/${f}`, import.meta.url), "utf8")).join("\n");
+  for (const name of TOKEN_NAMES) assert.ok(css.includes(`var(${name})`), name);
 });

@@ -161,33 +161,51 @@
 </dialog>
 
 <main class="mh-main" id="mh-main">
-  <section class="mh-pane mh-pane--source" id="mh-source-pane" aria-label="Markdown">
-    <!-- The textarea edits; the <pre> under it shows the same text,
-         coloured by the parser (js/source-highlight.js). -->
-    <div class="mh-editor">
-      <pre class="mh-highlight" id="mh-highlight" aria-hidden="true"></pre>
-      <textarea id="mh-source" class="mh-source" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Markdown source" aria-describedby="mh-source-help" aria-autocomplete="list" aria-controls="mh-complete" placeholder="Write markdown here — type / for headings, lists, code and more — or open a file, or drop one on the page."></textarea>
-      <!-- A <select> cannot sit at the caret and filter as you type; this is
-           the ARIA listbox pattern instead (js/autocomplete.js). -->
-      <!-- [html-validate-disable-next prefer-native-element] -->
-      <div class="mh-complete" id="mh-complete" role="listbox" aria-label="Suggestions" hidden></div>
-    </div>
-    <p class="mh-visually-hidden" id="mh-source-help">Type / at the start of a line for block types, or Control+Space or Alt+Slash anywhere, for suggestions: arrow keys choose, Enter or Tab inserts. Tab indents. Press Escape, then Tab, to move focus out of the editor.</p>
-  </section>
-  <div class="mh-divider" id="mh-divider" role="separator" aria-orientation="vertical" aria-label="Resize the panes" aria-valuemin="20" aria-valuemax="80" aria-valuenow="50" tabindex="0"></div>
-  <section class="mh-pane mh-pane--preview" aria-label="Preview">
-    <article class="mh-preview" id="mh-preview" aria-live="off"></article>
-  </section>
+  <!-- The headings, from the parser (js/outline-view.js). -->
+  <nav class="mh-outline" id="mh-outline" aria-labelledby="mh-outline-title" hidden>
+    <h2 class="mh-outline-title" id="mh-outline-title">Outline</h2>
+    <ol class="mh-outline-list" id="mh-outline-list"></ol>
+    <p class="mh-outline-empty" id="mh-outline-empty">No headings yet. Start a line with # to add one.</p>
+  </nav>
+  <div class="mh-panes" id="mh-panes">
+    <section class="mh-pane mh-pane--source" aria-label="Markdown">
+      <div class="mh-source-scroll" id="mh-source-scroll">
+        <!-- The textarea edits; the <pre> under it shows the same text,
+             coloured by the parser (js/source-highlight.js). -->
+        <div class="mh-editor">
+          <pre class="mh-highlight" id="mh-highlight" aria-hidden="true"></pre>
+          <textarea id="mh-source" class="mh-source" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Markdown source" aria-describedby="mh-source-help" aria-autocomplete="list" aria-controls="mh-complete" placeholder="Write markdown here — type / for headings, lists, code and more — or open a file, or drop one on the page."></textarea>
+          <!-- A <select> cannot sit at the caret and filter as you type; this is
+               the ARIA listbox pattern instead (js/autocomplete.js). -->
+          <!-- [html-validate-disable-next prefer-native-element] -->
+          <div class="mh-complete" id="mh-complete" role="listbox" aria-label="Suggestions" hidden></div>
+        </div>
+      </div>
+      <!-- The whole document in miniature (js/minimap.js); a pointer's way
+           around it — the outline is the keyboard's. -->
+      <canvas class="mh-minimap" id="mh-minimap" aria-hidden="true" hidden></canvas>
+      <p class="mh-visually-hidden" id="mh-source-help">Type / at the start of a line for block types, or Control+Space or Alt+Slash anywhere, for suggestions: arrow keys choose, Enter or Tab inserts. Tab indents. Press Escape, then Tab, to move focus out of the editor.</p>
+    </section>
+    <div class="mh-divider" id="mh-divider" role="separator" aria-orientation="vertical" aria-label="Resize the panes" aria-valuemin="20" aria-valuemax="80" aria-valuenow="50" tabindex="0"></div>
+    <section class="mh-pane mh-pane--preview" aria-label="Preview">
+      <article class="mh-preview" id="mh-preview" aria-live="off"></article>
+    </section>
+  </div>
 </main>
 
 <div class="mh-drop" id="mh-drop" hidden>
   <p>Drop a markdown file to open it</p>
 </div>
 
-<footer class="mh-status" id="mh-status" role="status">
-  <span class="mh-status-parse" id="mh-status-parse">Ready</span>
+<footer class="mh-status" id="mh-status">
+  <span class="mh-status-parse" id="mh-status-parse" role="status">Ready</span>
   <span class="mh-status-doc" id="mh-status-doc"></span>
   <span class="mh-status-cursor" id="mh-status-cursor">Ln 1, Col 1</span>
+  <div class="mh-view" role="toolbar" aria-label="View">
+    <button type="button" class="mh-toggle" id="mh-view-outline" aria-pressed="false" title="The headings, to jump between">Outline</button>
+    <button type="button" class="mh-toggle" id="mh-view-minimap" aria-pressed="false" title="The whole document in miniature, beside the editor">Minimap</button>
+    <button type="button" class="mh-toggle" id="mh-view-sync" aria-pressed="true" title="Keep the editor and the preview scrolled to the same place">Sync scroll</button>
+  </div>
 </footer>
 
 </body>
