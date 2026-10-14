@@ -14,6 +14,9 @@ library:
 - It colours the editor too, so you see what it understood as you type: a
   heading marker turns heading-coloured, and an unclosed code fence turns
   everything after it into code.
+- It suggests the syntax where it fits: `/` at the start of a line for
+  block types, `/` mid-line for links and emphasis, languages on a code
+  fence, and Ctrl+Space anywhere.
 
 The core is a plugin host. CommonMark itself is a plugin, written against the
 same API anyone else would use, and so is the syntax colouring of fenced code
@@ -27,7 +30,8 @@ in some twenty languages.
 - **Architecture, conventions and plugin API:**
   [`docs/features/00-overview.md`](docs/features/00-overview.md); the
   edit-pane highlighting and the code plugin are in
-  [`docs/features/01-highlighting.md`](docs/features/01-highlighting.md)
+  [`docs/features/01-highlighting.md`](docs/features/01-highlighting.md),
+  autocomplete in [`docs/features/02-autocomplete.md`](docs/features/02-autocomplete.md)
 
 ## Develop
 

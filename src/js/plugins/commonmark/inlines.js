@@ -236,10 +236,14 @@ export const closeBracket = {
     state.removeBracket();
     opener.node.unlink();
 
-    // No links in links: deactivate every earlier link opener.
+    // No links in links: deactivate every earlier link opener. Below one
+    // that is inactive already, all are (an earlier link did it), so the
+    // walk can stop there — without that, "[a](b) [" repeated is quadratic.
     if (!isImage) {
       for (opener = state.brackets; opener !== null; opener = opener.previous) {
-        if (!opener.image) opener.active = false;
+        if (opener.image) continue;
+        if (!opener.active) break;
+        opener.active = false;
       }
     }
     return true;

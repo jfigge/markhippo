@@ -80,7 +80,7 @@ export const codeBlock = {
       if (match && match[0].length >= block._fenceLength) {
         // The closing fence: the line is consumed whole.
         block.closed = true;
-        parser.lastLineLength = parser.offset + indent + match[0].length;
+        parser.lastLineLength = parser.nextNonspace + match[0].length;
         parser.finalize(block, parser.lineNumber);
         return 2;
       }

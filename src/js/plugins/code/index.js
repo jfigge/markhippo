@@ -16,9 +16,8 @@
 
 /*
  * The code plugin: syntax colouring for fenced code, in the preview and the
- * edit pane, for the languages in languages.js. It also declares those
- * languages as suggestions for a fence's info string, for the autocomplete
- * milestone to offer.
+ * edit pane, for the languages in languages.js. It also suggests those
+ * languages for a fence's info string.
  *
  * It only registers languages; the CommonMark plugin's code block renderer
  * and highlighter look a block's language up and use whatever is there. So
@@ -29,6 +28,14 @@
 
 import { LANGUAGES } from "./languages.js";
 
+// Each language once, found by any of its names.
+const SUGGESTIONS = LANGUAGES.map((lang) => ({
+  label: lang.id,
+  detail: lang.name,
+  keywords: [lang.name, ...lang.aliases],
+  insert: lang.id,
+}));
+
 export default {
   id: "code",
   name: "Code highlighting",
@@ -38,8 +45,7 @@ export default {
     for (const lang of LANGUAGES) api.language(lang);
     api.completions({
       context: "fence-info",
-      provide: () =>
-        LANGUAGES.map((lang) => ({ label: lang.id, detail: lang.name, aliases: lang.aliases })),
+      provide: () => SUGGESTIONS,
     });
   },
 };

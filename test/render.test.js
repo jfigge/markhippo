@@ -75,3 +75,18 @@ test("helpers", () => {
   assert.equal(potentiallyUnsafe("data:image/gif;base64,AA"), false);
   assert.equal(potentiallyUnsafe("/relative"), false);
 });
+
+test("safe: unsafe schemes are judged as a browser reads them, and only as schemes", () => {
+  const mh = commonMarkHippo();
+  const html = (src) => mh.render(mh.parse(src), { safe: true });
+  // In raw HTML's attributes (checked by the preview) a browser drops tabs
+  // and line breaks, and leading spaces and controls.
+  assert.ok(potentiallyUnsafe("java\tscript:alert(1)"));
+  assert.ok(potentiallyUnsafe(" \x01JavaScript:alert(1)"));
+  assert.ok(potentiallyUnsafe("vbscript:x"));
+  assert.ok(!potentiallyUnsafe("data:image/png;base64,AAAA"));
+  // A link destination is percent-encoded first, which defuses it anyway.
+  assert.equal(html("[x](java&#9;script:alert(1))"), '<p><a href="java%09script:alert(1)">x</a></p>\n');
+  assert.equal(html("[x](https://example.com/?next=data:x)"), '<p><a href="https://example.com/?next=data:x">x</a></p>\n');
+  assert.equal(html("[x](https://example.com/file:x)"), '<p><a href="https://example.com/file:x">x</a></p>\n');
+});

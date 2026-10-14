@@ -41,7 +41,7 @@
 
 import { codeToHtml, languageFor, tokenizeCode } from "../highlight/code.js";
 
-const reUnsafeProtocol = /^javascript:|vbscript:|file:|data:/i;
+const reUnsafeProtocol = /^(?:javascript|vbscript|file|data):/i;
 const reSafeDataProtocol = /^data:image\/(?:png|gif|jpeg|webp)/i;
 const reNeedsEscape = /[&<>"]/;
 const reEscape = /[&<>"]/g;
@@ -51,8 +51,13 @@ export function escapeHtml(s) {
   return reNeedsEscape.test(s) ? s.replace(reEscape, (c) => ESCAPES[c]) : s;
 }
 
+// Is `url` one that could run script or reach the file system? Judged as a
+// browser reads it: tabs and line breaks anywhere, and controls and spaces
+// in front, are ignored ("java&#9;script:" is still javascript:).
 export function potentiallyUnsafe(url) {
-  return reUnsafeProtocol.test(url) && !reSafeDataProtocol.test(url);
+  // eslint-disable-next-line no-control-regex
+  const plain = url.replace(/[\t\n\r]/g, "").replace(/^[\x00-\x20]+/, "");
+  return reUnsafeProtocol.test(plain) && !reSafeDataProtocol.test(plain);
 }
 
 const CORE_RENDERERS = {

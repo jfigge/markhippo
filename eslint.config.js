@@ -41,6 +41,7 @@ export default [
     files: [
       "src/js/core/**/*.js",
       "src/js/highlight/**/*.js",
+      "src/js/complete/**/*.js",
       "src/js/parser/**/*.js",
       "src/js/render/**/*.js",
       "src/js/plugins/**/*.js",

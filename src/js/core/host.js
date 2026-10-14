@@ -23,6 +23,7 @@
  *   const next = mh.reparse(doc, newText); // incremental, same result
  *   const html = mh.render(doc, { sourceLines: true });
  *   const segments = mh.highlight(doc);    // edit-pane colouring
+ *   const found = mh.complete(doc, text, offset); // autocomplete
  */
 
 import { createRegistry, installPlugin } from "./registry.js";
@@ -30,6 +31,7 @@ import { parse } from "../parser/index.js";
 import { reparse } from "../parser/incremental.js";
 import { HtmlRenderer } from "../render/html.js";
 import { highlight } from "../highlight/highlight.js";
+import { complete } from "../complete/complete.js";
 
 export function createMarkHippo({ plugins = [] } = {}) {
   const registry = createRegistry();
@@ -48,5 +50,6 @@ export function createMarkHippo({ plugins = [] } = {}) {
     reparse: (prev, text, options) => reparse(registry, prev, text, options),
     render: (ast, options) => new HtmlRenderer(registry, options).render(ast),
     highlight: (ast) => highlight(registry, ast),
+    complete: (ast, text, offset, options) => complete(registry, ast, text, offset, options),
   };
 }

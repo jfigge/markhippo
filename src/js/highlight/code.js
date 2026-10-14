@@ -52,11 +52,21 @@ export function tokenizeCode(lang, code) {
     // Most recently used goes last; the oldest is evicted first.
     cache.delete(code);
   } else {
-    tokens = clean(lang.tokenize(code), code.length);
+    tokens = safeTokenize(lang, code);
   }
   cache.set(code, tokens);
   if (cache.size > CACHE_SIZE) cache.delete(cache.keys().next().value);
   return tokens;
+}
+
+// A tokenizer that throws colours nothing, rather than stopping the parse
+// that asked for it (and with it the preview and autosave).
+function safeTokenize(lang, code) {
+  try {
+    return clean(lang.tokenize(code), code.length);
+  } catch {
+    return [];
+  }
 }
 
 // A tokenizer is plugin code: keep only well-formed, in-order tokens with
@@ -64,8 +74,9 @@ export function tokenizeCode(lang, code) {
 // corrupt the text or the markup.
 function clean(tokens, length) {
   const out = [];
+  if (!Array.isArray(tokens)) return out;
   let at = 0;
-  for (const t of tokens ?? []) {
+  for (const t of tokens) {
     if (!Array.isArray(t) || !reToken.test(t[2])) continue;
     const from = Math.max(at, t[0] | 0);
     const to = Math.min(length, t[1] | 0);

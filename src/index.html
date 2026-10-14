@@ -117,9 +117,13 @@
          coloured by the parser (js/source-highlight.js). -->
     <div class="mh-editor">
       <pre class="mh-highlight" id="mh-highlight" aria-hidden="true"></pre>
-      <textarea id="mh-source" class="mh-source" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Markdown source" aria-describedby="mh-source-help" placeholder="Write markdown here, open a file, or drop one on the page."></textarea>
+      <textarea id="mh-source" class="mh-source" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Markdown source" aria-describedby="mh-source-help" aria-autocomplete="list" aria-controls="mh-complete" placeholder="Write markdown here — type / for headings, lists, code and more — or open a file, or drop one on the page."></textarea>
+      <!-- A <select> cannot sit at the caret and filter as you type; this is
+           the ARIA listbox pattern instead (js/autocomplete.js). -->
+      <!-- [html-validate-disable-next prefer-native-element] -->
+      <div class="mh-complete" id="mh-complete" role="listbox" aria-label="Suggestions" hidden></div>
     </div>
-    <p class="mh-visually-hidden" id="mh-source-help">Tab indents. Press Escape, then Tab, to move focus out of the editor.</p>
+    <p class="mh-visually-hidden" id="mh-source-help">Type / at the start of a line for block types, or Control+Space anywhere, for suggestions: arrow keys choose, Enter or Tab inserts. Tab indents. Press Escape, then Tab, to move focus out of the editor.</p>
   </section>
   <div class="mh-divider" id="mh-divider" role="separator" aria-orientation="vertical" aria-label="Resize the panes" aria-valuemin="20" aria-valuemax="80" aria-valuenow="50" tabindex="0"></div>
   <section class="mh-pane mh-pane--preview" aria-label="Preview">

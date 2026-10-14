@@ -31,6 +31,9 @@ machine. Open a \`.md\` file with **Open…**, or drop one on the page.
 
 ## Things to try
 
+Type \`/\` at the start of a line for headings, lists, quotes and code
+blocks, or press Ctrl+Space anywhere: MarkHippo suggests what fits there.
+
 - Lists, which can be
   1. ordered,
   2. nested,

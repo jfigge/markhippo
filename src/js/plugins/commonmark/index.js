@@ -15,8 +15,8 @@
  */
 
 /*
- * The CommonMark plugin: the whole of CommonMark 0.31.2 — parsing, HTML and
- * edit-pane colouring — registered through the public plugin API like any
+ * The CommonMark plugin: the whole of CommonMark 0.31.2 — parsing, HTML,
+ * edit-pane colouring and autocomplete suggestions — registered through the public plugin API like any
  * third-party plugin; nothing here reaches into the core.
  */
 
@@ -39,6 +39,7 @@ import {
   openBracket,
   underscore,
 } from "./inlines.js";
+import { providers } from "./completions.js";
 import { highlighters } from "./highlight.js";
 import { renderers } from "./render.js";
 
@@ -59,5 +60,6 @@ export default {
     api.delimiter(underscore);
     for (const [type, fn] of Object.entries(renderers)) api.renderer(type, fn);
     for (const [type, fn] of Object.entries(highlighters)) api.highlighter(type, fn);
+    for (const provider of providers) api.completions(provider);
   },
 };

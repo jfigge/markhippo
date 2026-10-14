@@ -129,11 +129,12 @@ test("a fence renderer, chosen by info string", () => {
   assert.equal(mh.render(mh.parse("```js\nx\n```")), '<pre><code class="language-js">x\n</code></pre>\n');
 });
 
-test("completion providers are collected for the editor", () => {
-  const providers = mh.registry.completionProviders;
+test("completion providers are collected, and a plugin's suggestions are offered", () => {
+  const providers = mh.registry.completionProviders.filter((p) => p.plugin === "shout");
   assert.equal(providers.length, 1);
-  assert.equal(providers[0].plugin, "shout");
   assert.deepEqual(providers[0].provide(), [{ label: "shout" }]);
+  const found = mh.complete(mh.parse("```"), "```", 3);
+  assert.ok(found.items.some((i) => i.label === "shout"));
 });
 
 test("with no plugins, everything is plain paragraphs and text", () => {
@@ -157,7 +158,7 @@ test("CommonMark is installed only through the public plugin API", () => {
   );
   commonmark.setup(spy);
   const kinds = new Set(recorded.map(([name]) => name));
-  assert.deepEqual([...kinds].sort(), ["blockRule", "delimiter", "highlighter", "inlineRule", "renderer"]);
+  assert.deepEqual([...kinds].sort(), ["blockRule", "completions", "delimiter", "highlighter", "inlineRule", "renderer"]);
   const blocks = recorded.filter(([n]) => n === "blockRule").map(([, t]) => t);
   assert.deepEqual(blocks.sort(), ["block_quote", "code_block", "heading", "html_block", "item", "list", "paragraph", "thematic_break"]);
 });

@@ -20,14 +20,15 @@
  * A <textarea> over a coloured copy of its text (source-highlight.js): the
  * textarea does the editing, the copy underneath shows what the parser made
  * of it. The interface is small — value in and out, a change callback,
- * the colouring, and the cursor's line and column — so the autocomplete
- * popup can join it later.
+ * the colouring, and the cursor's line and column — and the autocomplete
+ * popup (autocomplete.js) attaches to it.
  *
  * The textarea never scrolls itself: it is as tall as its text, and the
  * pane around it (`scroller`) scrolls both it and the copy as one.
  */
 
 import { SourceHighlight } from "./source-highlight.js";
+import { lineStartAt } from "./highlight/lines.js";
 
 const INDENT = "  ";
 
@@ -42,7 +43,7 @@ export class EditorView {
     // so keyboard users are never trapped in it.
     this.tabEscapes = false;
 
-    textarea.addEventListener("input", () => this.changed());
+    textarea.addEventListener("input", (e) => this.changed(e));
     textarea.addEventListener("keydown", (e) => this.keydown(e));
     for (const type of ["keyup", "click", "select", "focus"]) {
       textarea.addEventListener(type, () => this.reportCursor());
@@ -53,7 +54,9 @@ export class EditorView {
     // Nor does it scroll the pane to keep the caret in view, so that is done
     // here, from where the coloured copy draws the caret's character.
     document.addEventListener("selectionchange", () => {
-      if (document.activeElement === textarea) this.revealCaret();
+      if (document.activeElement !== textarea) return;
+      this.revealCaret();
+      this.autocomplete?.caretMoved();
     });
   }
 
@@ -68,9 +71,16 @@ export class EditorView {
     else if (rect.bottom > view.bottom - margin) this.scroller.scrollTop += rect.bottom - view.bottom + margin;
   }
 
-  changed() {
+  // The autocomplete popup (autocomplete.js), once there is one: it sees
+  // every edit and gets first refusal of every key.
+  attach(autocomplete) {
+    this.autocomplete = autocomplete;
+  }
+
+  changed(e) {
     this.hl.edit(this.value);
     this.pin();
+    this.autocomplete?.input(e);
     this.onChange(this.value);
   }
 
@@ -116,6 +126,7 @@ export class EditorView {
   }
 
   keydown(e) {
+    if (this.autocomplete?.keydown(e)) return;
     if (e.key === "Escape") {
       this.tabEscapes = true;
       return;
@@ -140,7 +151,7 @@ export class EditorView {
       this.insert(INDENT);
       return;
     }
-    const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+    const lineStart = lineStartAt(value, start);
     const block = value.slice(lineStart, end);
     const indented = block.replace(/^/gm, INDENT);
     this.replaceRange(lineStart, end, indented);
@@ -150,7 +161,7 @@ export class EditorView {
   // Shift+Tab: remove up to one indent from each selected line.
   outdent() {
     const { selectionStart: start, selectionEnd: end, value } = this.el;
-    const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+    const lineStart = lineStartAt(value, start);
     const block = value.slice(lineStart, end);
     const outdented = block.replace(/^ {1,2}/gm, "");
     if (outdented === block) return;

@@ -113,13 +113,21 @@ const json = language("json", "JSON", ["jsonc", "json5", "geojson", "webmanifest
 // The end of a plain scalar: end of line, a comment, or a flow delimiter.
 const YAML_END = String.raw`(?=[ \t]*(?:$|\n|#|,|\]|\}))`;
 
+// Where a key can start: first on its line, or after "- ", "? ", "{" or ","
+// — so the key rule is tried once per entry, not at every word.
+function yamlKeyPosition(ctx) {
+  let i = ctx.at - 1;
+  while (i >= 0 && (ctx.code[i] === " " || ctx.code[i] === "\t")) i--;
+  return i < 0 || "\n-?{,".includes(ctx.code[i]);
+}
+
 const yaml = language("yaml", "YAML", ["yml"], [
   SPACE,
   [/(?<=^|\s)#.*/, "comment"],
   [/(?<=^|\n)(?:---|\.\.\.)(?=\s|$)/, "meta"],
   [/(?<=^|\n)%.*/, "meta"],
   [/"(?:\\.|[^\\"])*"?(?=[ \t]*:(?:\s|$))/, "property"],
-  [/[^\s#:'"\-?{}[\],&*!|>%@`][^\n:#]*?(?=:(?:\s|$))/, "property"],
+  [/[^\s#:'"\-?{}[\],&*!|>%@`][^\n:#,[\]{}]*(?=:(?:\s|$))/, "property", yamlKeyPosition],
   [/-(?=[ \t])/, null],
   [/"(?:\\[^]|[^\\"])*"?/, "string"],
   [/'(?:''|[^'])*'?/, "string"],
@@ -278,10 +286,12 @@ function inBlock(ctx) {
 }
 
 // In a block, `a:hover {` (nested, as Sass and modern CSS allow) is a
-// selector, not a declaration.
+// selector, not a declaration. The look-ahead is bounded (200 characters,
+// and never past ; { } or a line end) so it stays linear on long lines.
+const reNestedSelector = /[\w-]+\s*:[^;{}\n]{0,200}\{/y;
 function nestedSelector(ctx) {
-  const eol = ctx.code.indexOf("\n", ctx.end);
-  return /^\s*:[^;]*\{/.test(ctx.code.slice(ctx.end, eol === -1 ? undefined : eol));
+  reNestedSelector.lastIndex = ctx.at;
+  return reNestedSelector.test(ctx.code);
 }
 
 // ── HTML / XML ───────────────────────────────────────────────────────────────

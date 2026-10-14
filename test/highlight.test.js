@@ -97,9 +97,15 @@ test("escapes and entities inside text; unknown entities stay plain", () => {
 test("definitions, raw HTML, breaks and thematic breaks", () => {
   assert.deepEqual(colours('[x]: /u "t"'), [
     ["[x]:", "mh-md-definition mh-md-label"],
-    [" /u", "mh-md-definition mh-md-url"],
-    [' "t"', "mh-md-definition mh-md-string"],
+    [" ", "mh-md-definition"],
+    ["/u", "mh-md-definition mh-md-url"],
+    [" ", "mh-md-definition"],
+    ['"t"', "mh-md-definition mh-md-string"],
   ]);
+  // Across lines in a quote, the next line's > stays a quote marker.
+  const quoted = colours('> [a]:\n> /url\n> "t"');
+  assert.deepEqual(quoted.filter(([t]) => t === ">").map(([, c]) => c.includes("mh-md-quote")), [true, true, true]);
+  assert.ok(quoted.some(([t, c]) => t === "/url" && c.endsWith("mh-md-url")));
   assert.equal(classOf("<div>\nhi\n</div>", "<div>\nhi\n</div>"), "mh-md-html");
   assert.equal(classOf("a <b>c</b>", "<b>"), "mh-md-html");
   assert.equal(classOf("a  \nb", "  \n"), "mh-md-break");

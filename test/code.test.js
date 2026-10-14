@@ -208,6 +208,43 @@ test("a third-party language plugs in, and a faulty tokenizer cannot break the m
   );
 });
 
+test("a tokenizer that throws, or answers nonsense, colours nothing and breaks nothing", () => {
+  const host = createMarkHippo({
+    plugins: [
+      commonmark,
+      {
+        id: "broken",
+        setup(api) {
+          api.language({ id: "boom", tokenize: () => { throw new Error("boom"); } });
+          api.language({ id: "five", tokenize: () => 5 });
+        },
+      },
+    ],
+  });
+  for (const lang of ["boom", "five"]) {
+    const doc = host.parse("```" + lang + "\na<b\n```");
+    assert.equal(host.render(doc), `<pre><code class="language-${lang}">a&lt;b\n</code></pre>\n`);
+    assert.ok(host.highlight(doc).length > 0);
+  }
+  assert.deepEqual(host.registry.languages.get("boom").aliases, []);
+});
+
+test("CSS: a nested a:hover { is a selector, not a declaration", () => {
+  assert.ok(!tokens("css", ".card {\n  a:hover { color: red; }\n}").includes("property:a"));
+});
+
+test("long lines stay linear: YAML and CSS", () => {
+  for (const [id, src] of [
+    ["yaml", "a ".repeat(40000)],
+    ["yaml", "[" + "foo bar, ".repeat(5000) + "]"],
+    ["css", "a{\n" + "b:".repeat(40000)],
+  ]) {
+    const t0 = performance.now();
+    mh.registry.languages.get(id).tokenize(src);
+    assert.ok(performance.now() - t0 < 500, `${id}: ${Math.round(performance.now() - t0)} ms`);
+  }
+});
+
 test("tokenizing is memoized per language", () => {
   const lang = mh.registry.languages.get("js");
   const a = tokenizeCode(lang, "let a = 1");

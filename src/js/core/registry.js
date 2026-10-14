@@ -51,8 +51,7 @@
  *   highlighter(type, fn)       how a node type is coloured in the edit pane
  *                               (see highlight/highlight.js)
  *   completions(provider)       autocomplete suggestions: { context, provide }
- *                               (stored for the editor; unused until the
- *                               autocomplete phase)
+ *                               (see complete/complete.js)
  */
 
 // The block types the engine needs to function at all.
@@ -176,7 +175,7 @@ export function pluginApi(registry, plugin) {
 
     language(spec) {
       required(spec, ["id", "tokenize"], `Language from ${owner}`);
-      const lang = { name: spec.id, aliases: [], ...spec, plugin: owner };
+      const lang = { ...spec, name: spec.name ?? spec.id, aliases: spec.aliases ?? [], plugin: owner };
       for (const name of [lang.id, ...lang.aliases]) registry.languages.set(name.toLowerCase(), lang);
     },
 

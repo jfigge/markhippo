@@ -21,8 +21,8 @@
  * to date when typing pauses for HIGHLIGHT_DELAY_MS — short, so a heading
  * marker turns heading-coloured almost as it is typed (the parse is
  * incremental, so this stays cheap) — and the preview re-renders after
- * RENDER_DELAY_MS. Autocomplete, when it comes, runs on its own faster path
- * and waits for neither.
+ * RENDER_DELAY_MS. Autocomplete runs on its own faster path and waits for
+ * neither (autocomplete.js).
  */
 
 export const HIGHLIGHT_DELAY_MS = 150;

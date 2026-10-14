@@ -70,6 +70,12 @@ export function diffText(old, text) {
   return { from, oldTo, newTo };
 }
 
+// Where the line holding `offset` starts. (Not lastIndexOf("\n", offset - 1)
+// alone: at offset 0 that looks at index 0, and finds a leading "\n".)
+export function lineStartAt(text, offset) {
+  return offset <= 0 ? 0 : text.lastIndexOf("\n", offset - 1) + 1;
+}
+
 // The 0-based line `offset` is on.
 export function lineOf(text, offset) {
   let line = 0;
@@ -94,7 +100,7 @@ export function mapEdit(lines, old, text) {
   const first = lineOf(old, from);
   const lastOld = lineOf(old, oldTo);
   const lastNew = lineOf(text, newTo);
-  const start = old.lastIndexOf("\n", from - 1) + 1;
+  const start = lineStartAt(old, from);
 
   const delta = newTo - oldTo;
   const extend = from === oldTo && text.slice(from, newTo).indexOf("\n") === -1;

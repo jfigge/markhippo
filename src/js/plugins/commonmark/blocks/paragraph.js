@@ -27,12 +27,18 @@ import { Node } from "../../../parser/nodes.js";
 import { ScanState, parseReference } from "../../../parser/scanners.js";
 import { reNonSpace } from "./util.js";
 
-// Source offset of index `i` in a leaf's raw content.
+// Source offset of index `i` in a leaf's raw content (a binary search: a
+// paragraph of thousands of definitions has thousands of segments).
 function contentOffset(block, i) {
   const segs = block._segments;
-  let k = segs.length - 1;
-  while (k > 0 && segs[k][0] > i) k--;
-  const seg = segs[k];
+  let lo = 0;
+  let hi = segs.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (segs[mid][0] <= i) lo = mid;
+    else hi = mid - 1;
+  }
+  const seg = segs[lo];
   return seg[2] ? seg[1] : seg[1] + (i - seg[0]);
 }
 
@@ -65,6 +71,9 @@ export const paragraph = {
   continue: (parser) => (parser.blank ? 1 : 0),
   finalize(parser, block) {
     extractReferences(parser, block);
+    // Definitions taken off when a setext underline was tried came before
+    // that line was added: map the start again, now every line is in.
+    if (block._base > 0) block._s = contentOffset(block, block._base);
     if (!reNonSpace.test(block._content.slice(block._base))) block.unlink();
   },
   canContain: () => false,

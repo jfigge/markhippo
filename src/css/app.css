@@ -533,3 +533,64 @@ body {
   display: flex;
   justify-content: flex-end;
 }
+
+/* ── Autocomplete ───────────────────────────────────────────────────────── */
+
+.mh-complete {
+  position: absolute;
+  z-index: 2;
+  min-width: 220px;
+  max-width: min(420px, calc(100% - 16px));
+  max-height: 264px;
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid var(--surface-1);
+  border-radius: 8px;
+  background: var(--mantle);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 22%);
+  font: 13px/1.3 var(--sans);
+}
+
+.mh-complete[hidden] {
+  display: none;
+}
+
+.mh-complete-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.mh-complete-item[aria-selected="true"] {
+  background: var(--selection);
+}
+
+.mh-complete-label {
+  font-weight: 550;
+}
+
+.mh-complete-detail {
+  overflow: hidden;
+  color: var(--subtext);
+  text-overflow: ellipsis;
+}
+
+.mh-complete-hint {
+  margin-left: auto;
+  padding-left: 12px;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: pre;
+}
+
+.mh-complete[data-kind="fence-info"] .mh-complete-label,
+.mh-complete[data-kind="link-ref"] .mh-complete-label {
+  font-family: var(--mono);
+  font-weight: 500;
+}

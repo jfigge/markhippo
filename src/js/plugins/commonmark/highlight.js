@@ -40,7 +40,19 @@ import { decodeEntity } from "../../parser/normalize.js";
 const reEscapeOrEntity = /\\[!-/:-@[-`{-~]|&(?:#[xX][0-9a-fA-F]{1,6}|#[0-9]{1,7}|[A-Za-z][A-Za-z0-9]{0,31});/g;
 const reListMarker = /[-+*]|[0-9]{1,9}[.)]/y;
 const reLabel = /[ \t]*\[(?:\\[^]|[^\\\]])*\]:/y;
-const reDestination = /\s*(?:<(?:\\[^]|[^\\>\n])*>|\S+)/y;
+const reDestination = /<(?:\\[^]|[^\\>\n])*>|\S+/y;
+
+// Past spaces, and past a line break together with the next line's
+// container markers (> and indentation), which belong to the containers.
+function skipSpace(src, at) {
+  while (src[at] === " " || src[at] === "\t") at++;
+  if (src[at] === "\r") at++;
+  if (src[at] === "\n") {
+    at++;
+    while (src[at] === " " || src[at] === "\t" || src[at] === ">") at++;
+  }
+  return at;
+}
 
 const start = (node) => node.pos.start.offset;
 const end = (node) => node.pos.end.offset;
@@ -127,10 +139,12 @@ export const highlighters = {
     reLabel.lastIndex = start(node);
     if (!reLabel.test(src)) return;
     h.mark(start(node), reLabel.lastIndex, "md-label");
-    reDestination.lastIndex = reLabel.lastIndex;
+    const dest = skipSpace(src, reLabel.lastIndex);
+    reDestination.lastIndex = dest;
     if (!reDestination.test(src) || reDestination.lastIndex > end(node)) return;
-    h.mark(reLabel.lastIndex, reDestination.lastIndex, "md-url");
-    h.mark(reDestination.lastIndex, end(node), "md-string");
+    h.mark(dest, reDestination.lastIndex, "md-url");
+    const title = skipSpace(src, reDestination.lastIndex);
+    if (title < end(node)) h.mark(title, end(node), "md-string");
   },
 
   emph: wrapped("md-emph"),

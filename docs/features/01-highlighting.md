@@ -135,8 +135,9 @@ sticky-regex rules, with a little context. Examples of that context:
 - brace depth decides CSS selector vs declaration;
 - shell keywords count only where a command starts.
 
-The plugin also registers a `fence-info` completion provider listing its
-languages, ready for the autocomplete phase.
+The plugin also registers a `fence-info` completion provider, so the
+autocomplete popup offers these languages on a fence's opening line
+(`02-autocomplete.md`).
 
 ## The plugin list
 

@@ -26,6 +26,7 @@ import { createMarkHippo } from "./core/host.js";
 import commonmark from "./plugins/commonmark/index.js";
 import code from "./plugins/code/index.js";
 import { HIGHLIGHT_DELAY_MS, RENDER_DELAY_MS, debounce } from "./debounce.js";
+import { Autocomplete } from "./autocomplete.js";
 import { EditorView } from "./editor-view.js";
 import { PreviewView } from "./preview-view.js";
 import { StatusBar } from "./status-bar.js";
@@ -100,6 +101,17 @@ const editor = new EditorView($("mh-source"), {
 // frequent one stays cheap.
 const scheduleParse = debounce(parse, HIGHLIGHT_DELAY_MS);
 const scheduleRender = debounce(render, RENDER_DELAY_MS);
+
+// Suggestions are the fast path: they open on the keystroke, parsing first
+// (incrementally) if the colours have not caught up yet.
+editor.attach(
+  new Autocomplete(editor, $("mh-complete"), {
+    complete(text, offset, options) {
+      parse();
+      return mh.complete(ast, text, offset, options);
+    },
+  }),
+);
 
 function parse() {
   const text = editor.value;

@@ -4,7 +4,7 @@
 `features/markhippo-parser-core.md`. This file records what was built for
 Milestone 1 and the rules later milestones build on. Phase 2 (edit-pane
 highlighting, the code plugin, the plugin list) is in
-`01-highlighting.md`.*
+`01-highlighting.md`, phase 3 (autocomplete) in `02-autocomplete.md`.*
 
 ## Layout
 
@@ -15,6 +15,7 @@ src/js/core/              plugin host + registry   (pure)
 src/js/parser/            the parser engine        (pure)
 src/js/render/            AST → HTML               (pure)
 src/js/highlight/         AST → edit-pane colours, code tokens (pure)
+src/js/complete/          autocomplete: context, ranking, snippets (pure)
 src/js/plugins/commonmark CommonMark: parsing, HTML, colouring (pure)
 src/js/plugins/code       syntax colouring for fenced code     (pure)
 src/js/*.js               the page: editor, preview, status bar, app wiring
@@ -40,7 +41,10 @@ These are copied from JsonHippo and Rest Hippo:
 - localStorage keys use the `markhippo.` prefix (`markhippo.theme`,
   `markhippo.document`, …).
 - The page's CSP allows no inline script or style. Raw HTML in a document is
-  rendered, but nothing in it can run.
+  rendered, but nothing in it can run. The preview also builds its HTML in an
+  inert `<template>` first and removes what the CSP cannot stop — `meta`
+  (a refresh would navigate away), `base`, `link`, `form`, scripts, frames —
+  and clears unsafe URLs from raw HTML's attributes (`preview-view.js`).
 
 ## The AST
 
@@ -145,8 +149,8 @@ export default {
 - **Renderers** write through the HTML renderer (`r.tag`, `r.out`, `r.lit`,
   `r.cr`, `r.children`, `r.attrs`). See `render/html.js`.
 - **Languages** and **highlighters** are described in `01-highlighting.md`.
-- **Completion providers** are collected now, so plugins can declare their
-  suggestions, but nothing reads them until the autocomplete milestone.
+- **Completion providers** feed the autocomplete popup; see
+  `02-autocomplete.md`.
 
 The core registers only `document`, `paragraph` and text. With no plugins,
 everything is plain paragraphs. CommonMark (`plugins/commonmark/`) is
@@ -155,7 +159,6 @@ checks that, along with a toy third-party plugin.
 
 ## Not yet (later milestones)
 
-- Autocomplete and slash commands.
 - Themes beyond light, dark and system.
 - Synced scroll, outline and minimap. The renderer already emits
   `data-line`.

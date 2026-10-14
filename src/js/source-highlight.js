@@ -31,7 +31,7 @@
  * lines whose colouring changed.
  */
 
-import { lineOf, mapEdit, sameSegments, splitByLine } from "./highlight/lines.js";
+import { lineOf, lineStartAt, mapEdit, sameSegments, splitByLine } from "./highlight/lines.js";
 import { escapeHtml } from "./render/html.js";
 
 const REDRAW_ALL = 300;
@@ -103,7 +103,7 @@ export class SourceHighlight {
   caretRect(offset) {
     const line = this.pre.children[lineOf(this.text, offset)];
     if (!line) return null;
-    let column = offset - (this.text.lastIndexOf("\n", offset - 1) + 1);
+    let column = offset - lineStartAt(this.text, offset);
     const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
       if (column < node.length) {

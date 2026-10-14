@@ -27,6 +27,9 @@ import { ESCAPABLE, isEscapable, normalizeLabel, normalizeURI, unescapeString } 
 
 // ── Raw HTML (§6.6) ─────────────────────────────────────────────────────────
 
+// How deeply parentheses may nest in a link destination.
+const MAX_LINK_PARENS = 32;
+
 const WS = "[ \\t\\n\\r\\f\\v]";
 const TAGNAME = "[A-Za-z][A-Za-z0-9-]*";
 const ATTRIBUTENAME = "[a-zA-Z_:][a-zA-Z0-9:._-]*";
@@ -118,6 +121,9 @@ export function parseLinkDestination(s) {
     } else if (c === "(") {
       s.pos += 1;
       openparens += 1;
+      // The spec lets implementations limit nesting; cmark's 32 keeps a run
+      // of "[a](" from rescanning the rest of the paragraph at every "]".
+      if (openparens > MAX_LINK_PARENS) return null;
     } else if (c === ")") {
       if (openparens < 1) break;
       s.pos += 1;

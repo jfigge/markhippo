@@ -97,13 +97,25 @@ test("lines after an edit keep their colours untouched", () => {
   assert.deepEqual(after.slice(-3), before.slice(-3));
 });
 
+test("an edit from the very start of a document that begins with a blank line", () => {
+  const old = "\n# \n**a**# ";
+  const text = "x**a**# ";
+  const lines = apply(linesOf(old), old, text);
+  assert.equal(lines.length, 1);
+  let end = 0;
+  for (const [f, t] of lines[0]) {
+    assert.ok(f >= end && t <= text.length);
+    end = t;
+  }
+});
+
 test("random edits always give one well-formed entry per line", () => {
   const rand = rng(7);
   const pieces = ["#", " ", "*", "`", "\n", "a", "b", "```", ">", "-", "[x](y)", "\n\n"];
-  let text = "# Title\n\nSome *text* and `code`.\n\n```js\nlet x = 1\n```\n";
+  let text = "\n# Title\n\nSome *text* and `code`.\n\n```js\nlet x = 1\n```\n";
   let lines = linesOf(text);
   for (let step = 0; step < 2000; step++) {
-    const at = rand(text.length + 1);
+    const at = rand(4) === 0 ? 0 : rand(text.length + 1);
     const cut = rand(4) === 0 ? rand(6) : 0;
     const insert = rand(3) === 0 ? "" : pieces[rand(pieces.length)];
     const next = text.slice(0, at) + insert + text.slice(Math.min(text.length, at + cut));

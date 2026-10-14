@@ -30,7 +30,8 @@
  *
  *   prev    the last token that was not whitespace, { text, token }, or null
  *           at the start (how a / after a value is told from a regex)
- *   code    the whole code, and `end`, the offset just after the match (for
+ *   code    the whole code; `at`, where the rule is being tried; and, for a
+ *           token function, `end`, the offset just after its match (for
  *           looking ahead: is the next thing a "("?)
  *   state   an object the language's rules may keep their own state in
  *           (CSS's brace depth, HTML's inside-a-tag)
@@ -48,6 +49,7 @@ export function tokenizer(rules) {
     let at = 0;
     while (at < code.length) {
       let matched = false;
+      ctx.at = at;
       for (const rule of compiled) {
         if (rule.when && !rule.when(ctx)) continue;
         rule.re.lastIndex = at;

@@ -264,3 +264,20 @@ test("in every spec example, children nest inside parents and follow their sibli
     check(mh.parse(ex.markdown));
   }
 });
+
+test("definitions before a setext underline, in containers and with CRLF", () => {
+  for (const [src, para] of [
+    ["[foo]: /url\r\n===\r\n[foo]", "===\r\n[foo]"],
+    ["> [foo]: /url\n> ===\n", "==="],
+    ["- [foo]: /url\n  ===\n", "==="],
+  ]) {
+    assert.equal(covered(src, find(mh.parse(src), "paragraph")), para, JSON.stringify(src));
+  }
+});
+
+test("a closing fence after a partly consumed tab ends with its line", () => {
+  for (const src of [">```\n>\t```\n", "- ```\n \t```\n", ">```\r\n>\t```\r\n"]) {
+    const code = find(mh.parse(src), "code_block");
+    assert.ok(covered(src, code).endsWith("```"), JSON.stringify(covered(src, code)));
+  }
+});
